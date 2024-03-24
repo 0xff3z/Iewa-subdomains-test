@@ -1,0 +1,72 @@
+version: '3.9'
+
+services:
+
+  iewa-backend:
+    build:
+      context: ./
+      dockerfile: DockerFile
+      target: production
+    ports:
+      - "3000:3000"
+    image: iewa-backend
+    container_name: iewa-backend
+    networks:
+     iewa_network:
+      aliases:
+        - iewa-backend
+    volumes:
+         - .:/app/iewa
+         - /app/iewa/node_modules
+  
+    
+
+#  db:
+#    image: postgres
+#    restart: always
+#    ports:
+#      - "5432:5432"
+#    networks:
+#      - iewa_network
+#    environment:
+#        - POSTGRES_USER=iewa-test
+#        - POSTGRES_PASSWORD=iewa-test
+#        - POSTGRES_DB=iewa-test
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8080:8080
+  #   networks:
+  #     - iewa_network
+
+  nginx:
+    build:
+      context: ./
+      dockerfile: DockerFileNginx
+    image: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./certs/cert.pem/:/etc/nginx/certs/iewa/cert.pem
+      - ./certs/privkey.pem:/etc/nginx/certs/iewa/privkey.pem
+      - ./certs/options-ssl-nginx.conf:/etc/nginx/certs/options-ssl-nginx.conf
+      - ./certs/ssl-dhparams.pem:/etc/nginx/certs/ssl-dhparams.pem
+      - ./build/:/usr/share/nginx/html
+
+    depends_on:
+      - iewa-backend
+    networks:
+      - iewa_network
+  
+    
+networks:
+  iewa_network:
+    driver: bridge
+    attachable: true
+
+volumes:
+  postgres_data:
+    driver: local
