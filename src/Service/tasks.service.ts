@@ -12,7 +12,7 @@ export class TasksService implements OnApplicationBootstrap {
     }
 
     onApplicationBootstrap() {
-        // this.eventEmitter.emit('marketplace.get-from-monday');
+        this.eventEmitter.emit('marketplace.get-from-monday');
 
     }
 
