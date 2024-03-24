@@ -387,6 +387,12 @@ export class MyListsService {
                 interviewId:interview.id
 
             })
+            setTimeout(() => {
+                this.eventEmitter.emit("addMultipleItemInList",{
+                    userMondayId:user.mondayId,
+
+                })
+            }, 4000);
             return res.status(200).json({
                 message: "Interview created successfully",
 
@@ -433,6 +439,12 @@ export class MyListsService {
                 }
 
             })
+            setTimeout(() => {
+                this.eventEmitter.emit("addMultipleItemInList",{
+                    userMondayId:user.mondayId,
+
+                })
+            }, 4000);
             return res.status(200).json({
                 message: "Interview updated successfully",
 
