@@ -105,7 +105,7 @@ export class AuthService {
 
 
     async validateBusinessOwner(payload: any): Promise<User | UnauthorizedException> {
-        const user = await this.businessOwnerRepository.findOne({ where: { id: payload.id } });
+        const user = await this.businessOwnerRepository.findOne({ where: { email: payload.id } });
         if (user) {
             return user;
         }
@@ -114,11 +114,14 @@ export class AuthService {
 
     async registerBusinessOwner(registerDto: RegisterDto,res) {
         try {
-            const businessOwner = await this.businessOwnerRepository.findOne({ where: { email: registerDto.email } });
+            const businessOwner = await this.businessOwnerRepository.findOne({ where: {
+                email: registerDto.email,
+                phoneNumber: registerDto.phoneNumber
+            } });
 
 
             if (businessOwner) {
-                return res.status(400).json({ message: 'Business Owner already exists' });
+                return res.status(400).json({ message: 'الأيميل او رقم الجوال مسجل من قبل' });
             }
             const hashedPassword = await bcrypt.hash(registerDto.password, 10);
             const newBusinessOwner = await this.businessOwnerRepository.create({
@@ -137,8 +140,8 @@ export class AuthService {
 
 
 
-            const token = await this.jwtService.signAsync({ phoneNumber: registerDto.phoneNumber,role: 'businessOwner',id:newBusinessOwner.id });
-            const refreshToken = await this.jwtService.signAsync({ phoneNumber: registerDto.phoneNumber,role: 'businessOwner',id:newBusinessOwner.id }, { expiresIn: '7d' });
+            const token = await this.jwtService.signAsync({ phoneNumber: registerDto.phoneNumber,role: 'businessOwner',id:newBusinessOwner.email,date: new Date() });
+            const refreshToken = await this.jwtService.signAsync({ phoneNumber: registerDto.phoneNumber,role: 'businessOwner',id:newBusinessOwner.email,date: new Date() }, { expiresIn: '7d' });
             newBusinessOwner.refreshToken = refreshToken;
             newBusinessOwner.token = token;
             await this.businessOwnerRepository.save(newBusinessOwner);
@@ -187,8 +190,8 @@ export class AuthService {
             if (!isMatch) {
                 return res.status(400).json({ message: 'Invalid credentials' });
             }
-            const token = await this.jwtService.signAsync({ phoneNumber: businessOwner.phoneNumber,role: 'businessOwner',id:businessOwner.id });
-            const refreshToken = await this.jwtService.signAsync({ phoneNumber: businessOwner.phoneNumber,role: 'businessOwner',id:businessOwner.id }, { expiresIn: '7d' });
+            const token = await this.jwtService.signAsync({ phoneNumber: businessOwner.phoneNumber,role: 'businessOwner',id:businessOwner.email});
+            const refreshToken = await this.jwtService.signAsync({ phoneNumber: businessOwner.phoneNumber,role: 'businessOwner',id:businessOwner.email }, { expiresIn: '7d' });
             businessOwner.refreshToken = refreshToken;
             businessOwner.token = token;
             await this.businessOwnerRepository.save(businessOwner);

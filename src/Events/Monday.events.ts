@@ -75,7 +75,7 @@ export default class MondayEvents {
             const businessOwner = await this.businessOwnerRepository.findOneOrFail({where: {id: payload.userId}});
             const query = `
             query {
-                items_page_by_column_values (board_id: ${payload.boardId}, columns: [{column_id: "phone", column_values: ["${payload.form.phone}"]}]) {
+                items_page_by_column_values (board_id: ${payload.boardId}, columns: [{column_id: "email", column_values: ["${payload.form.email}"]}]) {
                     items {
                         id
                     }

@@ -54,13 +54,13 @@ export class MyListsService {
 
     async addToList(res, user:BusinessOwner, body: { type: string, candidateId: any,interviewId:number, presentBy:string}) {
         try {
-            const businessOwner = await this.businessOwnerRepository.findOne({where: {id:user.id},relations:["myList"]})
+            const businessOwner = await this.businessOwnerRepository.findOne({where: {id:user.id},relations:["myList","shortList","acceptedList","rejectedList"]})
             switch (body.type) {
                 case "myList":
-                    const myList = await this.myListRepository.findOne({where: {mondayId:body.candidateId}})
-                    const shortListE = await this.shortListRepository.findOne({where: {mondayId:body.candidateId}})
-                    const acceptedListE = await this.acceptedListRepository.findOne({where: {mondayId:body.candidateId}})
-                    const rejectedListE = await this.rejectedListRepository.findOne({where: {mondayId:body.candidateId}})
+                    const myList = await this.myListRepository.findOne({where: {mondayId:body.candidateId, businessOwner:businessOwner}})
+                    const shortListE = await this.shortListRepository.findOne({where: {mondayId:body.candidateId, businessOwner:businessOwner}})
+                    const acceptedListE = await this.acceptedListRepository.findOne({where: {mondayId:body.candidateId, businessOwner:businessOwner}})
+                    const rejectedListE = await this.rejectedListRepository.findOne({where: {mondayId:body.candidateId, businessOwner:businessOwner}})
                     if (myList || shortListE || acceptedListE || rejectedListE) {
                         return res.status(404).json({
                             message: "المرشح مضاف مسبقا"

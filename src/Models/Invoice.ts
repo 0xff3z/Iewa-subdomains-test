@@ -7,16 +7,16 @@ import {BusinessOwner} from "./BusinessOwner";
 @Entity()
 export class Invoice {
     @PrimaryColumn()
-    invoiceId: number;
-    @Column()
+    invoiceId: string;
+    @Column({nullable: true})
     invoiceType: string;
-    @Column()
+    @Column({nullable: true})
     invoiceTotal: number;
-    @Column()
+    @Column({nullable: true})
     invoiceDate: string;
-    @Column()
+    @Column({nullable: true})
     invoiceStatus: string;
-    @Column()
+    @Column({nullable: true})
     invoiceAssetUrl: string;
     @ManyToOne(() => BusinessOwner, businessOwner => businessOwner.invoices)
     businessOwner: BusinessOwner;

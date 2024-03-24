@@ -19,16 +19,18 @@ export class InvoiceService {
                 const exiest = await this.invoiceRepository.findOne({ where: { invoiceId: item.id } });
                 if (!exiest) {
                     const filesObject = item.column_values.find((column) => column.id === "files");
-                    const files = filesObject ? JSON.parse(filesObject.value).files : null;
+                    const files = filesObject && filesObject.value ? JSON.parse(filesObject.value).files : null;
+                    console.log(item.column_values.find((column) => column.id === "text").value);
                     const invoice = await this.invoiceRepository.create({
-                        invoiceId: parseInt(item.column_values.find((column) => column.id === "text").value.replace(/"/g, ''), 10), // Parse and convert to integer
-                        invoiceType: item.column_values.find((column) => column.id === "status_1").text,
-                        invoiceStatus: item.column_values.find((column) => column.id === "status1").text,
-                        invoiceTotal: parseInt(item.column_values.find((column) => column.id === "numbers5").value.replace(/"/g, ''), 10),
-                        invoiceAssetUrl: files ? files[0].assetId : null,
-                        invoiceDate: item.column_values.find((column) => column.id === "date4").date,
+                        invoiceId: item.column_values.find((column) => column.id === "text") ?item.column_values.find((column) => column.id === "text").value : null,
+                        invoiceType: item.column_values.find((column) => column.id === "status_1") ? item.column_values.find((column) => column.id === "status_1").text : null,
+                        invoiceStatus: item.column_values.find((column) => column.id === "status1") ? item.column_values.find((column) => column.id === "status1").text : null,
+                        invoiceTotal: item.column_values.find((column) => column.id === "numbers5") ? parseInt(item.column_values.find((column) => column.id === "numbers5").value.replace(/"/g, ''), 10) : null,
+                        invoiceAssetUrl: files && files[0] ? files[0].assetId : null,
+                        invoiceDate: item.column_values.find((column) => column.id === "date4") ? item.column_values.find((column) => column.id === "date4").date : null,
                         businessOwner: businessOwner
                     });
+
                     await this.invoiceRepository.save(invoice);
                 } else {
                     const filesObject = item.column_values.find((column) => column.id === "files");
