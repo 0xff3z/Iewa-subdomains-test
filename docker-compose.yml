@@ -21,24 +21,17 @@ services:
   
     
 
-#  db:
-#    image: postgres
-#    restart: always
-#    ports:
-#      - "5432:5432"
-#    networks:
-#      - iewa_network
-#    environment:
-#        - POSTGRES_USER=iewa-test
-#        - POSTGRES_PASSWORD=iewa-test
-#        - POSTGRES_DB=iewa-test
-  # adminer:
-  #   image: adminer
-  #   restart: always
-  #   ports:
-  #     - 8080:8080
-  #   networks:
-  #     - iewa_network
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    networks:
+      - iewa_network
+    environment:
+        - POSTGRES_USER=iewa-test
+        - POSTGRES_PASSWORD=iewa-test
+        - POSTGRES_DB=iewa-test
 
   nginx:
     build:
