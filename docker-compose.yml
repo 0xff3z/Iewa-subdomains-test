@@ -43,12 +43,12 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./certs/falcons/fullchain.pem/:/etc/nginx/certs/falcons/fullchain.pem
-      - ./certs/falcons/privkey.pem:/etc/nginx/certs/falcons/privkey.pem
-      - ./certs/falcons/chain.pem:/etc/nginx/certs/falcons/chain.pem
-      - ./certs/api-falcons/fullchain.pem/:/etc/nginx/certs/api-falcons/fullchain.pem
-      - ./certs/api-falcons/privkey.pem:/etc/nginx/certs/api-falcons/privkey.pem
-      - ./certs/api-falcons/chain.pem:/etc/nginx/certs/api-falcons/chain.pem
+      - ./certs/cert.pem/:/etc/nginx/certs/fullchain.pem
+      - ./certs/privkey.pem:/etc/nginx/certs/privkey.pem
+      - ./certs/chain.pem:/etc/nginx/certs/chain.pem
+      - ./certs/api-falcons/fullchain.pem/:/etc/nginx/certs/fullchain.pem
+      - ./certs/api-falcons/privkey.pem:/etc/nginx/certs/privkey.pem
+      - ./certs/api-falcons/chain.pem:/etc/nginx/certs/chain.pem
       - ./certs/options-ssl-nginx.conf:/etc/nginx/certs/options-ssl-nginx.conf
       - ./certs/ssl-dhparams.pem:/etc/nginx/certs/ssl-dhparams.pem
       - ./build/:/usr/share/nginx/html
@@ -57,9 +57,6 @@ services:
       - api-iewa
     networks:
       - iewa_Network
-
-    # deploy:
-    #   replicas: 8
 
 networks:
   iewa_Network:
