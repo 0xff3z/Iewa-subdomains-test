@@ -20,7 +20,7 @@ import {ConfigModule} from "@nestjs/config";
     }),
       TypeOrmModule.forRoot({
     type: 'postgres',
-    host: "db",
+    host: "localhost",
     port: 5432,
     username: "iewa-test",
     password: "iewa-test" ,

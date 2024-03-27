@@ -27,15 +27,17 @@ export class RequestsService {
                     "long_text7": body.jobResponsibilities,
                     "long_text9": body.jobRequirementsExperinces,
                     "long_text1": body.requiredSkillsDetails,
-                    "working_days": body.workingDays,
+                    "working_days": body.workHours,
                     "when_": body.whenToStart,
-                    "employment_type": body.jobType,
+                    "employment_type": body.contractType,
+                    "employment_type6": body.jobType,
                     "english": body.englishLevel,
                     "salary_cap": body.maxSalary,
                     "comment": body.additionalNotes,
                     "connect_boards6": {
                         "item_ids": [businessOwner.mondayId]
                     },
+
                 }
 
             })
@@ -77,7 +79,10 @@ export class RequestsService {
                     const jobLevel = experienceLevel;
                     const workingDays = (item.column_values && item.column_values.find(column => column.id === "working_days"))?.text || "";
                     const whenToStart = (item.column_values && item.column_values.find(column => column.id === "when_"))?.text || "";
-                    const employmentType = (item.column_values && item.column_values.find(column => column.id === "employment_type"))?.text || "";
+                    const contractType = (item.column_values && item.column_values.find(column => column.id === "employment_type"))?.text || "";
+
+                    const employmentType = (item.column_values && item.column_values.find(column => column.id === "employment_type6"))?.text || "";
+
                     const english = (item.column_values && item.column_values.find(column => column.id === "english"))?.text || "";
                     const salaryCap = (item.column_values && item.column_values.find(column => column.id === "salary_cap"))?.value || "";
 
@@ -96,7 +101,8 @@ export class RequestsService {
                         englishLevel: english,
                         salaryCap: salaryCap,
                         businessOwner:businessOwner,
-                        mondayId: item.id
+                        mondayId: item.id,
+                        contractType:contractType
                     });
 
                     await this.candidateRequestRepository.save(candidateRequest);

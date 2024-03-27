@@ -21,7 +21,8 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/v1/docs', app, document,{
-    customSiteTitle: 'IEWA API Documentation'
+    customSiteTitle: 'IEWA API Documentation',
+      url: 'http://localhost:3000/api/v1/docs',
 
   });
 

@@ -39,6 +39,8 @@ export class CandidateRequest {
     technicalSkills: string;
     @Column()
     jobRequirementsExperiences: string;
+    @Column()
+    contractType: string;
     @ManyToOne(() => BusinessOwner, businessOwner => businessOwner.candidateRequests)
     businessOwner: BusinessOwner;
     @CreateDateColumn()

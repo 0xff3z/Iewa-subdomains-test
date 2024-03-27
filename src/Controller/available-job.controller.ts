@@ -2,19 +2,18 @@ import {Controller, Get, OnModuleInit, Req, Res} from '@nestjs/common';
 import {AvailableJobService} from "../Service/available-job.service";
 
 @Controller('available-job')
-export class AvailableJobController implements OnModuleInit{
+export class AvailableJobController{
     constructor(
         private readonly AvailableJobService: AvailableJobService,
     ) {}
 
-    onModuleInit(): any {
-        return this.AvailableJobService.createAllJobs()
-    }
+
 
 
     @Get("get")
     async get(@Res() res, @Req() req) {
         try {
+            await this.AvailableJobService.createAllJobs()
             const allJobs = await this.AvailableJobService.findAll()
             return res.json({
                 status: 200,
