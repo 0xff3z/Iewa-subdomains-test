@@ -641,6 +641,53 @@ export class MondayService {
 
     return marketObjects;
   }
+  async createMarketplaceObjectNew(object) {
+    if (object.length == 0) {
+      console.log("no items");
+    }
+    const marketObjects = await Promise.all(object.map(async (item) => {
+      const marketObj = {
+        name: item.name,
+        id: item.id,
+        firstName: this.findItemsByid(item.column_values, "text", "text") ? JSON.parse(this.findItemsByid(item.column_values, "text", "text")) : "",
+        job: this.findItemsByid(item.column_values, "position", "text"),
+        bio: this.findItemsByid(item.column_values, "long_text", "long_text"),
+        yearsOfExperience: this.findItemsByid(item.column_values, "long_text2", "long_text"),
+        yearsOfExperienceTwo: this.findItemsByid(item.column_values, "long_text6", "long_text"),
+        yearsOfExperienceThree: this.findItemsByid(item.column_values, "long_text0", "long_text"),
+        yearsOfExperienceFour: this.findItemsByid(item.column_values, "long_text66", "long_text"),
+        // jobType: this.findItemsByid(item.column_values, "status9", "status"),
+        // englishLevel: this.findItemsByid(item.column_values, "status", "status"),
+        expectedSalary: this.findItemsByid(item.column_values, "numbers4", "number"),
+        nationality: this.findItemsByid(item.column_values, "status7", "status"),
+        np: this.findItemsByid(item.column_values, "numbers1", "number"),
+        courses: this.findItemsByid(item.column_values, "long_text9", "long_text"),
+        // gender: this.findItemsByid(item.column_values, "text9", "text"),
+        // senority: this.findItemsByid(item.column_values, "dropdown0", "dropdown"),
+        // languages: this.findItemsByid(item.column_values, "dropdown", "dropdown"),
+        // libraries: this.findItemsByid(item.column_values, "dropdown9", "dropdown"),
+        // tools: this.findItemsByid(item.column_values, "dropdown6", "dropdown"),
+        // storage: this.findItemsByid(item.column_values, "dropdown8", "dropdown"),
+        // frameworks: this.findItemsByid(item.column_values, "dropdown2", "dropdown"),
+        // paradigms: this.findItemsByid(item.column_values, "dropdown3", "dropdown"),
+        // platforms: this.findItemsByid(item.column_values, "dropdown5", "dropdown"),
+        skills: this.findItemsByid(item.column_values, "long_text3", "long_text"),
+        project: this.findItemsByid(item.column_values, "long_text4", "long_text"),
+        projectTwo: this.findItemsByid(item.column_values, "long_text45", "long_text"),
+        projectThree: this.findItemsByid(item.column_values, "long_text60", "long_text"),
+        currency: this.findItemsByid(item.column_values, "status6", "status"),
+        education: this.findItemsByid(item.column_values, "long_text5", "long_text"),
+      };
+
+      return marketObj;
+    }));
+
+
+
+
+    return marketObjects;
+  }
+
   findItemsByid(items, id, column_type) {
     const foundItem = items.find(item => item && item.id === id);
 
@@ -654,6 +701,11 @@ export class MondayService {
       case "status":
         return foundItem.text;
       case "long_text":
+        if (foundItem.value) {
+          var parsedValue = JSON.parse(foundItem.value);
+          return parsedValue.text;
+        }
+
       case "number":
         if (foundItem.value) {
           return JSON.parse(foundItem.value);

@@ -199,6 +199,55 @@ export default class MondayEvents {
           console.log(e)
         }
     }
+    @OnEvent("marketplace.get-from-monday-event-new")
+    async handleMarketplaceGetFromMondayEventNew(): Promise<any[]> {
+        try {
+            let cursor: string | null = null;
+            let allItems: any[] = [];
+
+            do {
+                const query: string = `
+      query {
+        boards(ids: [1445511186])  {
+        groups(ids: ["test_ewa_xlsx77277"]) {
+          items_page(${cursor ? `cursor: "${cursor}", limit: 500` : 'limit: 500, query_params: { order_by: [{ column_id: "name" }] }'}) {
+            cursor
+            items {
+              name
+              id
+              column_values {
+                id
+                value
+                ... on StatusValue {
+                  text
+                }
+                ... on DropdownValue  {
+                  text
+              }
+              }
+            }
+          }
+        }
+      }
+    }
+    `;
+
+                const res = await this.monday.api(query);
+                console.log(res)
+                const items = res.data.boards[0].groups[0].items_page.items;
+                allItems = [...allItems, ...items];
+                cursor = res.data.boards[0].groups[0].items_page.cursor;
+            } while (cursor);
+
+            const marketPlaceObj = await this.mondayService.createMarketplaceObjectNew(allItems);
+            const createCandidates = await this.marketplaceService.createAllCandidates(marketPlaceObj);
+
+
+            return allItems;
+        } catch (e) {
+            console.log(e)
+        }
+    }
 
     @OnEvent("addToListInMonday", { async: true })
     async handleAddMyListToMondayEvent(payload: any): Promise<any> {

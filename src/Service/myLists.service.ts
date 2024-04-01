@@ -186,7 +186,7 @@ export class MyListsService {
 
                 case "iewaList":
                     const iewaList = await this.iewaListRepository.findOne({where: {id: body.candidateId}})
-
+                    // @ts-ignore
                     const candidate = await this.candidateRepository.create({
                         type: "iewa",
                         ...iewaList

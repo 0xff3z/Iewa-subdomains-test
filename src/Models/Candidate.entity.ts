@@ -44,14 +44,29 @@ export class Candidate {
   @Column({  nullable: true})
   @ApiProperty()
   yearsOfExperience: string;
-
-  @Column({ nullable: true })
+  @Column({  nullable: true})
   @ApiProperty()
-  jobType: string;
-
-  @Column({ nullable: true })
+  yearsOfExperienceTwo: string;
+  @Column({  nullable: true})
   @ApiProperty()
-  englishLevel: string;
+  yearsOfExperienceThree: string;
+  @Column({  nullable: true})
+  @ApiProperty()
+  yearsOfExperienceFour: string;
+
+  // @Column({ nullable: true })
+  // @ApiProperty()
+  // jobType: string;
+
+  // @Column({ nullable: true })
+  // @ApiProperty()
+  // englishLevel: string;
+  @Column({  nullable: true})
+    @ApiProperty()
+  currency: string;
+  @Column({  nullable: true})
+    @ApiProperty()
+  education: string;
 
   @Column({  nullable: true})
   @ApiProperty()
@@ -62,52 +77,62 @@ export class Candidate {
   nationality: string;
 
   @Column({ nullable: true })
+    @ApiProperty()
+  courses: string;
+
+  @Column({ nullable: true })
   @ApiProperty()
   np: string;
 
-  @Column({ nullable: true })
-  @ApiProperty()
-  gender: string;
+  // @Column({ nullable: true })
+  // @ApiProperty()
+  // gender: string;
 
-  @Column({ nullable: true })
-  @ApiProperty()
-  senority: string;
+  // @Column({ nullable: true })
+  // @ApiProperty()
+  // senority: string;
+  //
+  // @Column('simple-array', { nullable: true })
+  // @ApiProperty()
+  // languages: string[];
+  //
+  // @Column('simple-array', { nullable: true })
+  // @ApiProperty()
+  // libraries: string[];
+  //
+  // @Column('simple-array', { nullable: true })
+  // @ApiProperty()
+  // tools: string[];
+  //
+  // @Column('simple-array', { nullable: true })
+  // @ApiProperty()
+  // storage: string[];
+  //
+  // @Column('simple-array', { nullable: true })
+  // @ApiProperty()
+  // frameworks: string[];
+  //
+  // @Column('simple-array', { nullable: true })
+  // @ApiProperty()
+  // paradigms: string[];
+  //
+  // @Column('simple-array', { nullable: true })
+  // @ApiProperty()
+  // platforms: string[];
 
-  @Column('simple-array', { nullable: true })
+  @Column( { nullable: true })
   @ApiProperty()
-  languages: string[];
-
-  @Column('simple-array', { nullable: true })
-  @ApiProperty()
-  libraries: string[];
-
-  @Column('simple-array', { nullable: true })
-  @ApiProperty()
-  tools: string[];
-
-  @Column('simple-array', { nullable: true })
-  @ApiProperty()
-  storage: string[];
-
-  @Column('simple-array', { nullable: true })
-  @ApiProperty()
-  frameworks: string[];
-
-  @Column('simple-array', { nullable: true })
-  @ApiProperty()
-  paradigms: string[];
-
-  @Column('simple-array', { nullable: true })
-  @ApiProperty()
-  platforms: string[];
-
-  @Column('simple-array', { nullable: true })
-  @ApiProperty()
-  skills: string[];
+  skills: string;
 
   @Column({ nullable: true })
   @ApiProperty()
   project: string;
+  @Column({ nullable: true })
+  @ApiProperty()
+  projectTwo: string;
+  @Column({ nullable: true })
+  @ApiProperty()
+  projectThree: string;
 
   @OneToMany(type => MyList, myList => myList.candidate)
     myList: MyList[];
