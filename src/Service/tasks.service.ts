@@ -16,22 +16,22 @@ export class TasksService implements OnApplicationBootstrap {
 
     }
 
-    @Cron('45 * * * * *')
-    handleCron() {
-        this.logger.debug('Called when the current second is 45');
-    }
+    // @Cron('45 * * * * *')
+    // handleCron() {
+    //     this.logger.debug('Called when the current second is 45');
+    // }
 
-    @Cron(CronExpression.EVERY_12_HOURS)
-    handleCronEvery12Hours() {
-        this.eventEmitter.emit('marketplace.get-from-monday');
-
-    }
-
-    @Cron(CronExpression.EVERY_2_HOURS)
-    handleCronEvery2Hours() {
-        this.eventEmitter.emit('check-users-interviews');
-
-    }
+    // @Cron(CronExpression.EVERY_12_HOURS)
+    // handleCronEvery12Hours() {
+    //     this.eventEmitter.emit('marketplace.get-from-monday');
+    //
+    // }
+    //
+    // @Cron(CronExpression.EVERY_2_HOURS)
+    // handleCronEvery2Hours() {
+    //     this.eventEmitter.emit('check-users-interviews');
+    //
+    // }
 
 
 }

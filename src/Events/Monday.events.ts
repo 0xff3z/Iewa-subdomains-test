@@ -190,8 +190,8 @@ export default class MondayEvents {
                 cursor = res.data.boards[0].groups[0].items_page.cursor;
             } while (cursor);
 
-            const marketPlaceObj = await this.mondayService.createMarketplaceObject(allItems);
-            const createCandidates = await this.marketplaceService.createAllCandidates(marketPlaceObj);
+            // const marketPlaceObj = await this.mondayService.createMarketplaceObject(allItems);
+            // const createCandidates = await this.marketplaceService.createAllCandidates(marketPlaceObj);
 
 
             return allItems;
