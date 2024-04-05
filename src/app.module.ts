@@ -12,6 +12,8 @@ import {CdnModule} from "./Modules/cdn.module";
 import {RequestsModule} from "./Modules/requests.module";
 import * as process from "process";
 import {ConfigModule} from "@nestjs/config";
+import {TraineeModule} from "./Modules/trainee.module";
+import {CampModule} from "./Modules/camp.module";
 
 @Module({
   imports: [
@@ -27,7 +29,7 @@ import {ConfigModule} from "@nestjs/config";
     database: "iewa-test",
     entities: [__dirname + '/**/*.entity{.ts,.js}'],
       autoLoadEntities: true,
-      synchronize: true,
+      synchronize: false,
     
       
   }),
@@ -43,6 +45,8 @@ import {ConfigModule} from "@nestjs/config";
     InvoiceModule,
     CdnModule,
       RequestsModule,
+    TraineeModule,
+    CampModule,
     ],
 
 })

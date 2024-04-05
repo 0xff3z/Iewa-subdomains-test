@@ -18,6 +18,7 @@ import {Invoice} from "../Models/Invoice";
 import {InvoiceService} from "../Service/invoice.service";
 import {RequestsService} from "../Service/requests.service";
 import {IewaList} from "../Models/IewaList.entity";
+import {isNumber} from "class-validator";
 
 
 export default class MondayEvents {
@@ -56,10 +57,13 @@ export default class MondayEvents {
                 }
               }`;
            const res = await this.monday.api(mutation).then(res => res);
-           console.log(res)
-           if (!isNaN(res)) {
-               return res
+           if (res.data.create_item.id != null) {
+                console.log("Item created with ID:", res.data.create_item.id);
+               this.eventEmitter.emit("monday-created-item", res.data.create_item.id);
+
+               return res.data.create_item.id
            }
+
 
 
 
@@ -68,6 +72,66 @@ export default class MondayEvents {
            console.log(e)
            return e
        }
+    }
+
+    @OnEvent("monday-upload-file")
+    async handleMondayUploadFileEvent(payload: any) {
+        try {
+            const mutation = `mutation {
+                add_file_to_column (item_id: ${payload.itemId}, column_id: "${payload.columnId}", file: "${payload.file}") {
+                    id
+                }
+            }`;
+            const res = await this.monday.api(mutation).then(res => res);
+            console.log(res)
+            if (res.data.add_file_to_column.id != null) {
+                console.log("File uploaded with ID:", res.data.add_file_to_column.id);
+                this.eventEmitter.emit("monday-file-uploaded", res.data.add_file_to_column.id);
+                return res.data.add_file_to_column.id
+            }
+        }
+        catch (e) {
+            console.log(e)
+            return e
+        }
+    }
+
+    @OnEvent("monday-get-view-columns")
+    async handleMondayGetViewColumnsEvent(payload: any) {
+        try {
+            const query = `query {
+  boards(ids: [${payload.boardId}]) {
+    columns {
+      id
+      title
+      type
+    }
+    items {
+      column_values(ids: ["status"]) {
+        ... on StatusValue {
+          index
+          label
+          value
+        }
+      }
+    }
+    views(ids: [${payload.viewId}]) {
+      id
+      name
+      settings_str
+      type
+      view_specific_data_str
+    }
+  }
+}`;
+            const res = await this.monday.api(query).then(res => res);
+            console.log(res.data.boards[0].columns);
+            return res;
+        }
+        catch (e) {
+            console.log(e)
+            return e
+        }
     }
     @OnEvent("monday-create-item-register")
     async handleMondayCreateItemRegisterEvent(payload: any) {
