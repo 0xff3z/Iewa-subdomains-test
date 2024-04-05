@@ -16,15 +16,15 @@ export class TraineeController {
     @ApiResponse({status: 201, description: 'Trainee registered successfully'})
     @ApiResponse({status: 400, description: 'Bad request'})
     @ApiResponse({status: 500, description: 'Internal server error'})
-    @UsePipes(ValidationPipe)
-    @UseInterceptors(FileInterceptor('file'))
+    // @UsePipes(ValidationPipe)
+    @UseInterceptors(FileInterceptor('upload'))
     @Post('register')
     async registerTrainee(
-        @Res() res: any, @Body() body: RegisterTraineeDTO,
+        @Res() res: any, @Body() body: any,
                           @UploadedFile() file: Express.Multer.File
                           ){
         try {
-            return this.traineeService.registerTrainee(res, body)
+            return this.traineeService.registerTrainee(res, body,file)
         }
         catch (e) {
             return res.status(500).json({

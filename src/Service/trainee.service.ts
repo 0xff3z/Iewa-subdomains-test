@@ -10,7 +10,7 @@ export class TraineeService {
 
 
 
-    async registerTrainee(res, body:RegisterTraineeDTO){
+    async registerTrainee(res, body:RegisterTraineeDTO,file){
       try {
             this.eventEmitter.emit("monday-create-item",{
                 boardId: 1392728485,
@@ -30,7 +30,17 @@ export class TraineeService {
 
                 }
             })
+
           const response = this.eventEmitter.on("monday-created-item",(data) => {
+              console.log(data)
+              console.log(file)
+              this.eventEmitter.emit("monday-upload-file",{
+                  boardId: 1392728485,
+                  itemId: data,
+                  file: file,
+                  columnId: "file"
+
+              })
               return res.status(201).json({
                   message: "Trainee registered successfully"
               })

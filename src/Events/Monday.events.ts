@@ -19,6 +19,8 @@ import {InvoiceService} from "../Service/invoice.service";
 import {RequestsService} from "../Service/requests.service";
 import {IewaList} from "../Models/IewaList.entity";
 import {isNumber} from "class-validator";
+import { Readable } from "stream";
+import axios from "axios";
 
 
 export default class MondayEvents {
@@ -74,28 +76,39 @@ export default class MondayEvents {
        }
     }
 
-    @OnEvent("monday-upload-file")
+
+
+    @OnEvent('monday-upload-file')
     async handleMondayUploadFileEvent(payload: any) {
         try {
-            const mutation = `mutation {
-                add_file_to_column (item_id: ${payload.itemId}, column_id: "${payload.columnId}", file: "${payload.file}") {
-                    id
-                }
-            }`;
-            const res = await this.monday.api(mutation).then(res => res);
-            console.log(res)
-            if (res.data.add_file_to_column.id != null) {
-                console.log("File uploaded with ID:", res.data.add_file_to_column.id);
-                this.eventEmitter.emit("monday-file-uploaded", res.data.add_file_to_column.id);
-                return res.data.add_file_to_column.id
-            }
-        }
-        catch (e) {
-            console.log(e)
-            return e
+            const myHeaders = new Headers();
+            myHeaders.append("Authorization", "eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjI1NjI2ODAwNSwiYWFpIjoxMSwidWlkIjo0MzIxMDQyOSwiaWFkIjoiMjAyMy0wNS0xM1QxODowODoxNC4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTY4OTUwMDAsInJnbiI6ImV1YzEifQ.gvAyLNijyDdaGYoDJTPltn-Po-OyWivKS4IC6Ijmnp8");
+            myHeaders.append("API-version", "2023-10");
+            myHeaders.append("Cookie", "__cf_bm=tErK1PpuPd.rVe784qCyd5Wax8iJS7F5SLK3MLlTMHE-1712355896-1.0.1.1-Nd9ubPcogfqsdBBY1Uti_qnj538hyVGSZtgtHZQ11BLrbwDJnqpVRHKl3A.zU.WjOmONftiOGLwGY4BII3QYIiOX6Om.KkjzEOSO69EkNW8");
+            // myHeaders.append("Content-Type", "multipart/form-data");
+            const formdata = new FormData();
+            formdata.append("query", `mutation add_file($file: File!) {add_file_to_column (item_id: ${payload.itemId}, column_id:"file" file: $file) {id}}`);
+            let blob = new Blob([payload.file.buffer], {type: payload.file.mimetype});
+            formdata.append("map", `{"file":"variables.file"}`);
+            formdata.append("file", blob, payload.file.originalname);
+
+            const requestOptions = {
+                method: "POST",
+                headers: myHeaders,
+                body: formdata,
+                redirect: "follow"
+            };
+
+            // @ts-ignore
+            fetch("https://api.monday.com/v2/file", requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+        } catch (error) {
+            console.error('Error uploading file to Monday.com:', error.response ? error.response.data : error.message);
+            return error;
         }
     }
-
     @OnEvent("monday-get-view-columns")
     async handleMondayGetViewColumnsEvent(payload: any) {
         try {
