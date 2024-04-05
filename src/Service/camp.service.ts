@@ -54,10 +54,11 @@ export class CampService {
             });
 
             this.eventEmitter.on("monday-created-item", (data) => {
-                res.status(201).json({
-                    message: "Candidate registered successfully",
 
-                })
+            })
+            res.status(201).json({
+                message: "Candidate registered successfully",
+
             })
 
         }
