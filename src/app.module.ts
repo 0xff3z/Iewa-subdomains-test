@@ -29,7 +29,7 @@ import {CampModule} from "./Modules/camp.module";
     database: "iewa-test",
     entities: [__dirname + '/**/*.entity{.ts,.js}'],
       autoLoadEntities: true,
-      synchronize: false,
+      synchronize: true,
     
       
   }),
