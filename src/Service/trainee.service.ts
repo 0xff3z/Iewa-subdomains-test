@@ -10,7 +10,7 @@ export class TraineeService {
 
 
 
-    async registerTrainee(res, body:RegisterTraineeDTO,file){
+    async registerTrainee(res, body:any,file){
         try {
             this.eventEmitter.emit("monday-create-item",{
                 boardId: 1392728485,
@@ -27,6 +27,13 @@ export class TraineeService {
                     "status5": body.searchingFor,
                     "numbers": body.salary,
                     "status": body.areYouPassedIewaCamp,
+                    "color": body.PlaceOfResidence,
+                    "status8": body.major,
+                    "status35": body.favoriteOfWorkplace,
+                    "status4": body.careerPath,
+                    "status98": body.englishLevel,
+                    "status9": body.howToWork,
+                    "status3": body.college,
                 }
             });
 
