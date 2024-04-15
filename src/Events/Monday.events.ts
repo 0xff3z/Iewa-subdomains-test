@@ -21,6 +21,7 @@ import {IewaList} from "../Models/IewaList.entity";
 import {isNumber} from "class-validator";
 import { Readable } from "stream";
 import axios from "axios";
+import {TraineeService} from "../Service/trainee.service";
 
 
 export default class MondayEvents {
@@ -36,7 +37,8 @@ export default class MondayEvents {
         private mondayService: MondayService,
         private marketplaceService: MarketplaceService,
         private invoiceService: InvoiceService,
-        private requestsService: RequestsService
+        private requestsService: RequestsService,
+        private traineeService: TraineeService
     ) {
         this.monday = mondaySdk();
         this.monday.setApiVersion('2023-10');
@@ -789,6 +791,58 @@ export default class MondayEvents {
         catch (e) {
             console.log(e)
             return e
+        }
+    }
+
+    @OnEvent("monday-get-trainees")
+    async handleMondayGetTraineesEvent() {
+        try {
+            let cursor: string | null = null;
+            let allItems: any[] = [];
+
+            do {
+                const query: string = `
+          query {
+            boards(ids: [1392728485])  {
+            groups(ids: ["topics"]) {
+              items_page(${cursor ? `cursor: "${cursor}",` : ''} limit: 500,  query_params: {
+                order_by: [{ column_id: "name" }]
+              }) {
+                cursor
+                items {
+                  name
+                  id
+                  column_values {
+                    id
+                    value
+                    ... on StatusValue {
+                      text
+                    }
+                    ... on DropdownValue  {
+                      text
+                  }
+                  }
+                }
+              }
+            }
+          }
+        }
+        `;
+
+                const res = await this.monday.api(query);
+                console.log(res.data.boards[0].groups[0].items_page);
+                const items = res.data.boards[0].groups[0].items_page.items;
+                allItems = [...allItems, ...items];
+                cursor = res.data.boards[0].groups[0].items_page.cursor;
+            } while (cursor);
+
+            const traineeObject = await this.mondayService.createTrainingObject(allItems);
+            const createCandidates = await this.traineeService.createAllTrainees(traineeObject);
+
+
+            return allItems;
+        } catch (e) {
+            console.log(e)
         }
     }
 

@@ -27,7 +27,7 @@ async function bootstrap() {
   });
 
   app.enableCors();
-  app.use(new CheckApiKeyMiddleware().use);
+  // app.use(new CheckApiKeyMiddleware().use);
 
   app.setGlobalPrefix('api/v1');
   await app.listen(3000);

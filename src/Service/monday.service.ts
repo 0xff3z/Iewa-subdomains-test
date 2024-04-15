@@ -674,6 +674,37 @@ export class MondayService {
     return marketObjects;
   }
 
+  async createTrainingObject(object) {
+    if (object.length == 0) {
+      console.log("no items");
+    }
+    const trainneObject = await Promise.all(object.map(async (item) => {
+      const traineeObj = {
+        mondayId: item.id || "",
+        aboutMe: this.findItemsByid(item.column_values, "long_text", "long_text") || "",
+        areYouPassedIewaCamp: this.findItemsByid(item.column_values, "status", "status") || "",
+        careerPath: this.findItemsByid(item.column_values, "status4", "status") || "",
+        college: this.findItemsByid(item.column_values, "status3", "status") || "",
+        email: this.findItemsByid(item.column_values, "email", "email") || "",
+        englishLevel: this.findItemsByid(item.column_values, "status98", "status") || "",
+        favoriteOfWorkplace: this.findItemsByid(item.column_values, "status35", "status") || "",
+        name: item.name || "",
+        howToWork: this.findItemsByid(item.column_values, "status9", "status") || "",
+        major: this.findItemsByid(item.column_values, "status8", "status") || "",
+        phoneNumber: this.findItemsByid(item.column_values, "phone", "phone") || "",
+        PlaceOfResidence: this.findItemsByid(item.column_values, "color", "status") || "",
+        salary: this.findItemsByid(item.column_values, "numbers", "number") || "",
+        searchingFor: this.findItemsByid(item.column_values, "status5", "status") || "",
+        cv: this.findItemsByid(item.column_values, "file", "file") || "",
+
+      };
+
+      return traineeObj;
+    }));
+    return trainneObject;
+    }
+
+
 
   findItemsByid(items, id, column_type) {
     const foundItem = items.find(item => item && item.id === id);
@@ -692,12 +723,37 @@ export class MondayService {
           var parsedValue = JSON.parse(foundItem.value);
           return parsedValue.text || "";
         }
+        case "email":
+            if (foundItem.value) {
+                var parsedValue = JSON.parse(foundItem.value);
+                return parsedValue.email || "";
+            }
+      case "file":
+        if (foundItem.value) {
+          try {
+            const fileDetails = JSON.parse(foundItem.value);
+            if (fileDetails.files && fileDetails.files.length > 0) {
+              // Returning the assetId of the first file
+              return fileDetails.files[0].assetId;
+            }
+          } catch (e) {
+            console.error("Error parsing file details:", e);
+          }
+        }
+        return null;
+
 
       case "number":
         if (foundItem.value) {
           return JSON.parse(foundItem.value);
         }
         return null;
+
+        case "phone":
+            if (foundItem.value) {
+                return JSON.parse(foundItem.value).phone;
+            }
+            return null;
       case "dropdown":
         if (foundItem.text && foundItem.text.includes(",")) {
           return foundItem.text.split(',').map(item => item.trim());

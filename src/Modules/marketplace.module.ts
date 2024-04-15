@@ -13,11 +13,13 @@ import {InvoiceService} from "../Service/invoice.service";
 import {RequestsService} from "../Service/requests.service";
 import {CandidateRequest} from "../Models/CandidateRequest.entity";
 import {IewaList} from "../Models/IewaList.entity";
+import {TraineeService} from "../Service/trainee.service";
+import {Trainee} from "../Models/Trainee";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Candidate, BusinessOwner, MyList,Interview,Invoice,CandidateRequest,IewaList])],
+    imports: [TypeOrmModule.forFeature([Candidate, BusinessOwner, MyList,Interview,Invoice,CandidateRequest,IewaList,Trainee])],
     controllers: [MarketplaceController],
-    providers: [MarketplaceService,MondayEvents,MondayService,InvoiceService,RequestsService],
+    providers: [MarketplaceService,MondayEvents,MondayService,InvoiceService,RequestsService,TraineeService],
     exports: []
 
 })
