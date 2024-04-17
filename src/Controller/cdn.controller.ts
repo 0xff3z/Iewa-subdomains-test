@@ -27,4 +27,18 @@ export class CdnController {
         return this.cdnService.generateMondayAssetUrl(res, businessOwner, id);
     }
 
+    @ApiProperty({type: 'CDN'})
+    @ApiResponse({status: 400, description: 'Bad request'})
+    @ApiResponse({status: 401, description: 'Unauthorized'})
+    @ApiResponse({status: 500, description: 'Internal server error'})
+    @ApiOperation({summary: 'Download Invoice'})
+    @Post("download-invoice/:id")
+    async downloadInvoice(
+        @Res() res,
+        @CurrentAuthClientUser() businessOwner,
+        @Param('id') id: string
+    ) {
+        return this.cdnService.downloadInvoice(res, businessOwner,id);
+    }
+
 }

@@ -15,8 +15,9 @@ export class InvoiceService {
 
     async createAllInvoices(object, businessOwner) {
         try {
+            console.log(object);
             for (const item of object) {
-                const exiest = await this.invoiceRepository.findOne({ where: { invoiceId: item.id } });
+                const exiest = await this.invoiceRepository.findOne({ where: { mondayId: item.id } });
                 if (!exiest) {
                     const filesObject = item.column_values.find((column) => column.id === "files");
                     const files = filesObject && filesObject.value ? JSON.parse(filesObject.value).files : null;
@@ -28,7 +29,8 @@ export class InvoiceService {
                         invoiceTotal: item.column_values.find((column) => column.id === "numbers5") ? parseInt(item.column_values.find((column) => column.id === "numbers5").value.replace(/"/g, ''), 10) : null,
                         invoiceAssetUrl: files && files[0] ? files[0].assetId : null,
                         invoiceDate: item.column_values.find((column) => column.id === "date4") ? item.column_values.find((column) => column.id === "date4").date : null,
-                        businessOwner: businessOwner
+                        businessOwner: businessOwner,
+                        mondayId: item.id
                     });
 
                     await this.invoiceRepository.save(invoice);
@@ -42,7 +44,8 @@ export class InvoiceService {
                         invoiceTotal: parseInt(item.column_values.find((column) => column.id === "numbers5").value.replace(/"/g, ''), 10),
                         invoiceAssetUrl: files ? files[0].assetId : null,
                         invoiceDate: item.column_values.find((column) => column.id === "date4").date,
-                        businessOwner: businessOwner
+                        businessOwner: businessOwner,
+                        mondayId: item.id
                     });
                 }
             }

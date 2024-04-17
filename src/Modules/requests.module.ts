@@ -13,11 +13,13 @@ import {AvailableJobService} from "../Service/available-job.service";
 import {AvailableJob} from "../Models/AvailableJob";
 import {Candidate} from "../Models/Candidate.entity";
 import {CandidateRequest} from "../Models/CandidateRequest.entity";
+import {RejectedList} from "../Models/RejectedList.entity";
+import {IewaList} from "../Models/IewaList.entity";
 
 @Module({
     controllers: [RequestsController,AvailableJobController],
     providers: [RequestsService,MondayService,AvailableJobService],
-    imports:[TypeOrmModule.forFeature([AvailableJob,Candidate,CandidateRequest])],
+    imports:[TypeOrmModule.forFeature([AvailableJob,Candidate,CandidateRequest,RejectedList,IewaList])],
     exports: []
 
 })

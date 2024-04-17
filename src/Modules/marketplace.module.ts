@@ -15,9 +15,10 @@ import {CandidateRequest} from "../Models/CandidateRequest.entity";
 import {IewaList} from "../Models/IewaList.entity";
 import {TraineeService} from "../Service/trainee.service";
 import {Trainee} from "../Models/Trainee";
+import {RejectedList} from "../Models/RejectedList.entity";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Candidate, BusinessOwner, MyList,Interview,Invoice,CandidateRequest,IewaList,Trainee])],
+    imports: [TypeOrmModule.forFeature([Candidate, BusinessOwner, MyList,Interview,Invoice,CandidateRequest,IewaList,Trainee,RejectedList])],
     controllers: [MarketplaceController],
     providers: [MarketplaceService,MondayEvents,MondayService,InvoiceService,RequestsService,TraineeService],
     exports: []

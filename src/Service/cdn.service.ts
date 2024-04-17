@@ -79,6 +79,19 @@ export class CdnService {
     }
 
 
+    async downloadInvoice(res, businessOwner,id) {
+        try {
+            const assetUrl = await this.MondayService.GenerateAssetURl(id);
+            return  res.status(200).send({data:assetUrl, message: 'Invoice Downloaded Successfully', status: 200});
+
+        }
+        catch (e) {
+            console.log(e);
+            res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
+
 
 
 }

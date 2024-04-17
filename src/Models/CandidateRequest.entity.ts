@@ -41,6 +41,8 @@ export class CandidateRequest {
     jobRequirementsExperiences: string;
     @Column()
     contractType: string;
+    @Column({nullable: true})
+    status: string;
     @ManyToOne(() => BusinessOwner, businessOwner => businessOwner.candidateRequests)
     businessOwner: BusinessOwner;
     @CreateDateColumn()

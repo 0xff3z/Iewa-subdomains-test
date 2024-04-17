@@ -1,4 +1,4 @@
-import {Controller, Get, HttpCode, Res, UseGuards} from "@nestjs/common";
+import {Controller, Get, HttpCode, Post, Res, UseGuards} from "@nestjs/common";
 import {ApiOkResponse, ApiOperation, ApiProperty, ApiTags} from "@nestjs/swagger";
 import {AuthGuard} from "@nestjs/passport";
 import {InvoiceService} from "../Service/invoice.service";
@@ -23,4 +23,7 @@ export class InvoiceController {
     ) {
         return this.invoiceService.getMyInvoices(res, businessOwner);
     }
+
+
+
 }

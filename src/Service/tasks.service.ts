@@ -15,6 +15,7 @@ export class TasksService implements OnApplicationBootstrap {
         this.eventEmitter.emit('marketplace.get-from-monday-event-new');
         this.eventEmitter.emit('monday-get-trainees');
 
+
     }
 
     // @Cron('45 * * * * *')
@@ -28,11 +29,11 @@ export class TasksService implements OnApplicationBootstrap {
     //
     // }
     //
-    // @Cron(CronExpression.EVERY_2_HOURS)
-    // handleCronEvery2Hours() {
-    //     this.eventEmitter.emit('check-users-interviews');
-    //
-    // }
+    @Cron(CronExpression.EVERY_5_MINUTES)
+    handleCronEvery2Hours() {
+        this.eventEmitter.emit('check-users-interviews');
+
+    }
 
 
 }

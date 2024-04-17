@@ -698,8 +698,9 @@ export default class MondayEvents {
   }
 }`;
             const res = await this.monday.api(query).then(res => res.data.items[0].column_values[0].linked_items);
+
             const businessOwner = await this.businessOwnerRepository.findOneOrFail({where: {id: payload.mondayId}});
-            const marketPlaceObj = await this.mondayService.createMarketplaceObject(res);
+            const marketPlaceObj = await this.mondayService.createMarketplaceObjectNew(res);
 
             marketPlaceObj.map(async (item) => {
                 const exiest = await this.iewaListRepository.findOne({ where: { id: item.id } })

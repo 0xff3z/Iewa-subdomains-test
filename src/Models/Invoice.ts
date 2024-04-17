@@ -6,7 +6,10 @@ import {BusinessOwner} from "./BusinessOwner";
 
 @Entity()
 export class Invoice {
+
     @PrimaryColumn()
+    mondayId: string;
+    @Column()
     invoiceId: string;
     @Column({nullable: true})
     invoiceType: string;

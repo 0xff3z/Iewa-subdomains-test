@@ -13,6 +13,7 @@ import {MyList} from "./MyList.entity";
 import {ShortList} from "./ShortList.entity";
 import {RejectedList} from "./RejectedList.entity";
 import {Interview} from "./Interview.entity";
+import {IewaList} from "./IewaList.entity";
 
 export enum CandidateType {
   marketPlace = 'marketPlace',
@@ -142,6 +143,8 @@ export class Candidate {
     rejectedList: RejectedList[];
   @OneToMany(type => Interview, interview => interview.candidate)
     interview: Interview[];
+  @OneToMany(type => IewaList, iewaList => iewaList.candidate)
+    iewaList: IewaList[];
   @Column({ nullable: true, type: 'enum', enum: CandidateType, default: CandidateType.marketPlace })
     @ApiProperty()
   type: string;

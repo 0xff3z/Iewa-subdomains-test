@@ -84,4 +84,27 @@ export class RequestsController {
         }
     }
 
+    @Post("reject")
+    @HttpCode(200)
+    @ApiResponse({ status: 200, description: 'Reject request' })
+    @ApiResponse({ status: 500, description: 'Internal server error' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Forbidden' })
+    @ApiOperation({ summary: 'Reject request' })
+    async reject(
+
+        @Res() res,
+        @Body() body,
+        @CurrentAuthClientUser() businessOwner:BusinessOwner,
+
+    ) {
+        try {
+            return this.requestsService.rejectRequest(body, businessOwner,res)
+        }
+        catch (error) {
+            console.log(error)
+            return res.json({status: 500, data: error})
+        }
+    }
+
 }
