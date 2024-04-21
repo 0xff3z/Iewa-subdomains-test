@@ -19,12 +19,11 @@ export class RequestsService {
     }
 
     async addRequest(body, businessOwner,res) {
-        console.log(body)
         try {
             this.eventEmitter.emit("monday-create-item", {
                 boardId: "1392725521",
                 groupId: "topics",
-                itemName: businessOwner.company_name,
+                itemName: body.jobTitle,
                 form:{
                     "job_title__1": body.jobTitle,
                     "skills__1": body.requiredSkills,
@@ -47,7 +46,35 @@ export class RequestsService {
                 }
 
             })
-            return res.status(200).json({status: 200, data: "Request added successfully"})
+
+            this.eventEmitter.once("monday-created-item", async (data) => {
+                const existing = await this.candidateRequestRepository.findOne({ where: { mondayId: data } });
+                if (existing) {
+                    return res.status(200).json({status: 200, data: "Request already exists"})
+                }
+                const candidateRequest = await this.candidateRequestRepository.create({
+                    additionalNotes: body.additionalNotes,
+                    technicalSkills: body.requiredSkills,
+                    experienceLevel: body.experienceLevel,
+                    numberOfEmployees: 1,
+                    jobResponsibilities: body.jobResponsibilities,
+                    jobRequirementsExperiences: body.jobRequirementsExperinces,
+                    jobTitle: body.jobTitle,
+                    skills: body.requiredSkills,
+                    workingDays: body.workHours,
+                    whenToStart: body.whenToStart,
+                    employmentType: body.jobType,
+                    englishLevel: body.englishLevel,
+                    salaryCap: body.maxSalary,
+                    businessOwner:businessOwner,
+                    mondayId: data,
+                    status:"pending"
+                });
+
+                await this.candidateRequestRepository.save(candidateRequest);
+                return res.status(200).json({status: 200, data: "Request added successfully"})
+
+            })
         }
         catch (error) {
             console.log(error)
@@ -56,9 +83,9 @@ export class RequestsService {
     }
     async getRequests(businessOwner,res) {
         try {
-            this.eventEmitter.emit("getMyRequests", {
-                itemId: businessOwner.mondayId
-            })
+            // this.eventEmitter.emit("getMyRequests", {
+            //     itemId: businessOwner.mondayId
+            // })
             const requests = await this.candidateRequestRepository.find({where: {businessOwner: businessOwner}})
             return res.status(200).json({status: 200, data: requests, message: "Requests retrieved successfully"})
         }
@@ -225,12 +252,10 @@ export class RequestsService {
                         اسم الشركة" :${businessOwner.company_name},`
 
             })
-            setTimeout(() => {
-                this.eventEmitter.emit("addMultipleItemInList",{
-                    userMondayId:businessOwner.mondayId,
+            this.eventEmitter.emit("addMultipleItemInList",{
+                userMondayId:businessOwner.mondayId,
 
-                })
-            }, 4000);
+            })
             return res.status(200).json({status: 200, data: "Candidate rejected successfully"})
         }
         catch (error) {

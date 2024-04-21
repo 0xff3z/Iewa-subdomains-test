@@ -61,6 +61,7 @@ export default class MondayEvents {
                 }
               }`;
            const res = await this.monday.api(mutation).then(res => res);
+           console.log(res)
            if (res.data.create_item.id != null) {
                 console.log("Item created with ID:", res.data.create_item.id);
                this.eventEmitter.emit("monday-created-item", res.data.create_item.id);
@@ -151,10 +152,10 @@ export default class MondayEvents {
     @OnEvent("monday-create-item-register")
     async handleMondayCreateItemRegisterEvent(payload: any) {
         try {
-            const businessOwner = await this.businessOwnerRepository.findOneOrFail({where: {id: payload.userId}});
+            const businessOwner = await this.businessOwnerRepository.findOne({where: {id: payload.userId}});
             const query = `
             query {
-                items_page_by_column_values (board_id: ${payload.boardId}, columns: [{column_id: "email", column_values: ["${payload.form.email}"]}]) {
+                items_page_by_column_values (board_id: ${payload.boardId}, columns: [{column_id: "email", column_values: ["${payload.form.email.email}"]}]) {
                     items {
                         id
                     }
@@ -166,6 +167,30 @@ export default class MondayEvents {
             if(exists) {
                 businessOwner.mondayId = exists.id;
                 await this.businessOwnerRepository.save(businessOwner);
+
+                const columnValues = {
+                    "connect_boards6": {
+                        "item_ids": []
+                    },
+                    "link_to_interviews8": {
+                        "item_ids": []
+
+                    }
+                };
+
+                const mutation = `mutation {
+        change_multiple_column_values(item_id:${businessOwner.mondayId}, board_id:1399424616, column_values: "${JSON.stringify(columnValues).replace(/"/g, '\\"')}") {
+            id
+        }
+      }`;
+
+                const res = await this.monday.api(mutation);
+                setTimeout(() => {
+                    this.eventEmitter.emit("addMultipleItemInList",{
+                        userMondayId:businessOwner.mondayId,
+
+                    })
+                }, 4000);
             } else {
                 const columnValuesString = JSON.stringify(payload.form).replace(/"/g, '\\"');
                 const mutation = `mutation {
@@ -717,7 +742,10 @@ export default class MondayEvents {
 
 
             })
-            return res;
+            this.eventEmitter.emit("IewaListFinished", {
+                userMondayId: payload.mondayId,
+
+            })
         } catch (e) {
             console.log(e);
             return e;

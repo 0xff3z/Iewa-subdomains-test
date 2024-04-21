@@ -39,7 +39,7 @@ export class CandidateRequest {
     technicalSkills: string;
     @Column()
     jobRequirementsExperiences: string;
-    @Column()
+    @Column({nullable: true})
     contractType: string;
     @Column({nullable: true})
     status: string;

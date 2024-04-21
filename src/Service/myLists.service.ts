@@ -156,7 +156,7 @@ export class MyListsService {
                             userMondayId:user.mondayId,
 
                         })
-                    }, 4000);
+                    }, 1000);
 
                     return res.status(200).json({
                         message: "Candidate added to list successfully",
@@ -208,7 +208,7 @@ export class MyListsService {
                         this.eventEmitter.emit("addMultipleItemInList", {
                             userMondayId: user.mondayId,
                         })
-                    }, 4000);
+                    }, 1000);
 
                     return res.status(200).json({
                         message: "Candidate added to list successfully",
@@ -376,7 +376,7 @@ export class MyListsService {
             this.eventEmitter.emit("createInterviewInMonday",{
                 boardId:1392724674,
                 candidateMondayId:body.candidateId,
-                itemName:"مقابلة",
+                itemName:interview.candidate.name,
                 userMondayId:user.mondayId,
                 talentPoolConnectedBoard:"connect_boards",
                 clientConnectedBoard:"connect_boards6",
@@ -412,7 +412,10 @@ export class MyListsService {
             })
 
             const iewaList = await this.iewaListRepository.find({where: {businessOwner: user}});
-            return res.status(200).json({status:200, message: 'Iewa List retrieved successfully', data: iewaList});
+            this.eventEmitter.once("IewaListFinished", (data) => {
+                return res.status(200).json({status:200, message: 'Iewa List retrieved successfully', data: iewaList});
+            })
+
 
 
 
