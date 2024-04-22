@@ -12,8 +12,8 @@ export class TasksService implements OnApplicationBootstrap {
     }
 
     onApplicationBootstrap() {
-        // this.eventEmitter.emit('marketplace.get-from-monday-event-new');
-        // this.eventEmitter.emit('monday-get-trainees');
+        this.eventEmitter.emit('marketplace.get-from-monday-event-new');
+        this.eventEmitter.emit('monday-get-trainees');
 
 
     }
