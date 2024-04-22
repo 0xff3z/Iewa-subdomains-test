@@ -209,10 +209,15 @@ export class MyListsService {
                             userMondayId: user.mondayId,
                         })
                     }, 1000);
+                    this.eventEmitter.once("addMultipleItemInListFinished", async (data) => {
+                        return res.status(200).json({
+                            message: "Candidate added to list successfully",
+                        })
+                    }
+                    )
 
-                    return res.status(200).json({
-                        message: "Candidate added to list successfully",
-                    })
+
+
 
             }
 
@@ -411,9 +416,10 @@ export class MyListsService {
                 itemId:user.mondayId
             })
 
-            const iewaList = await this.iewaListRepository.find({where: {businessOwner: user}});
-            this.eventEmitter.once("IewaListFinished", (data) => {
-                return res.status(200).json({status:200, message: 'Iewa List retrieved successfully', data: iewaList});
+            this.eventEmitter.once("IewaListFinished", async (data) => {
+                const iewaList = await this.iewaListRepository.find({where: {businessOwner: user}});
+
+                return res.status(200).json({status: 200, message: 'Iewa List retrieved successfully', data: iewaList});
             })
 
 
@@ -458,6 +464,48 @@ export class MyListsService {
             return res.status(500).json({ message: "Internal server error" });
         }
     }
+
+
+
+    async requestCandidateInfo(res, user: BusinessOwner, body: { candidateId: any }) {
+        try {
+            const candidate = await this.candidateRepository.findOne({where: {id: body.candidateId}});
+            if (!candidate) {
+                return res.status(404).json({ message: "Candidate not found" });
+            }
+
+            this.eventEmitter.emit("create-monday-item-multiple-column-values", {
+                boardId: 1474304612,
+                itemName: candidate.name,
+                groupId: "topics",
+                connectedBoards: [
+                    {
+                        boardId: "connect_boards7__1",
+                        itemIds: [candidate.id]
+                    },
+                    {
+                        boardId:"connect_boards__1",
+                        itemIds: [user.mondayId]
+
+                    }
+                ]
+            });
+
+            this.eventEmitter.once("monday-changed-multiple-column-values", async (data) => {
+                const acceptedList = await this.acceptedListRepository.findOne({where: {mondayId: body.candidateId}});
+                acceptedList.isRequestedCandidateInfo = true;
+                await this.acceptedListRepository.save(acceptedList);
+                return res.status(200).json({
+                    message: "Candidate info requested successfully",
+                });
+            });
+
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    }
+
 
 
 }

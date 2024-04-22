@@ -223,6 +223,8 @@ export default class MondayEvents {
         }
     }
 
+
+
     @OnEvent("monday-check-item")
     async handleMondayCheckItemEvent(payload: any) {
         try {
@@ -434,7 +436,9 @@ export default class MondayEvents {
             console.log(columnValues)
 
             const res = await this.monday.api(mutation);
-            if (!isNaN(res)) {
+            if (res.data.change_multiple_column_values.id != null) {
+                this.eventEmitter.emit("addMultipleItemInListFinished", { userMondayId: payload.userMondayId });
+
                 return res;
             }
         } catch (error) {
@@ -537,6 +541,42 @@ export default class MondayEvents {
             }
         }
         catch (e) {
+            console.log(e);
+            return e;
+        }
+    }
+
+
+    @OnEvent("create-monday-item-multiple-column-values", { async: true })
+    async createItemWithMultipleColumnValues(payload: any) {
+        try {
+            let mutation = `mutation {
+            create_item (board_id: ${payload.boardId}, item_name: "${payload.itemName}") {
+                id
+            }
+        }`;
+            let res = await this.monday.api(mutation);
+            const newItemId = res.data.create_item.id;
+
+            const columnValues = {...payload.form};
+
+            for (const board of payload.connectedBoards) {
+                columnValues[board.boardId] = { "item_ids": board.itemIds };
+            }
+
+            mutation = `mutation {
+            change_multiple_column_values(item_id: ${newItemId}, board_id: ${payload.boardId}, column_values: "${JSON.stringify(columnValues).replace(/"/g, '\\"')}") {
+                id
+            }
+        }`;
+            res = await this.monday.api(mutation);
+            console.log(res);
+
+            if (res.data.change_multiple_column_values.id != null) {
+                this.eventEmitter.emit("monday-changed-multiple-column-values");
+                return res;
+            }
+        } catch (e) {
             console.log(e);
             return e;
         }
@@ -686,6 +726,7 @@ export default class MondayEvents {
 
     @OnEvent("getIewaList", { async: true })
     async getIewaList(payload: any) {
+        console.log(payload)
         try {
             const query = `query {
   items (ids:[${payload.itemId}]) {
@@ -722,30 +763,46 @@ export default class MondayEvents {
     }
   }
 }`;
-            const res = await this.monday.api(query).then(res => res.data.items[0].column_values[0].linked_items);
+            const res = await this.monday.api(query)
+                .then(res => res.data.items[0].column_values[0].linked_items);
 
-            const businessOwner = await this.businessOwnerRepository.findOneOrFail({where: {id: payload.mondayId}});
-            const marketPlaceObj = await this.mondayService.createMarketplaceObjectNew(res);
-
-            marketPlaceObj.map(async (item) => {
-                const exiest = await this.iewaListRepository.findOne({ where: { id: item.id } })
-                if (!exiest) {
-                    const candidate = await this.iewaListRepository.create(item)
-                    await this.iewaListRepository.save({
-                        businessOwner: businessOwner,
-                        ...candidate
-                    })
-                } else {
-
+            console.log(res)
+            if (res.length == 0) {
+                const businessOwner = await this.businessOwnerRepository.findOneOrFail({where: {id: payload.userId},relations: ["iewaList"]});
+                const iewaList = businessOwner.iewaList.map(item => item.id);
+                if (iewaList.length > 0) {
+                    await this.iewaListRepository.delete(iewaList);
+                    this.eventEmitter.emit("IewaListFinished", { userMondayId: payload.mondayId });
+                    return;
 
                 }
 
+                this.eventEmitter.emit("IewaListFinished", { userMondayId: payload.mondayId });
+                return;
+            }
 
-            })
-            this.eventEmitter.emit("IewaListFinished", {
-                userMondayId: payload.mondayId,
 
-            })
+            const businessOwner = await this.businessOwnerRepository.findOneOrFail({where: {id: payload.mondayId}});
+            const marketPlaceObjs = await this.mondayService.createMarketplaceObjectNew(res);
+
+            await Promise.all(marketPlaceObjs.map(async (item) => {
+                const exists = await this.iewaListRepository.findOne({ where: { id: item.id } });
+                console.log(exists)
+                if (!exists) {
+                    const candidate = this.iewaListRepository.create(item);
+                    await this.iewaListRepository.save({
+                        businessOwner: businessOwner,
+                        ...candidate
+                    });
+                    console.log("Iewa List item created with ID:", item.id);
+                    this.eventEmitter.emit("IewaListFinished", { userMondayId: payload.mondayId });
+                } else {
+                    console.log("Iewa List item already exists with ID:", item.id);
+                    this.eventEmitter.emit("IewaListFinished", { userMondayId: payload.mondayId });
+
+                }
+            }));
+
         } catch (e) {
             console.log(e);
             return e;

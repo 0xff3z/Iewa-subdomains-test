@@ -256,7 +256,12 @@ export class RequestsService {
                 userMondayId:businessOwner.mondayId,
 
             })
-            return res.status(200).json({status: 200, data: "Candidate rejected successfully"})
+            this.eventEmitter.once("addMultipleItemInListFinished", async (data) => {
+                return res.status(200).json({
+                    message: "Candidate added to list successfully",
+                })
+            }
+            )
         }
         catch (error) {
             console.log(error)

@@ -121,7 +121,13 @@ export class BusinessOwnerController {
         @CurrentAuthClientUser() user,
     )
     {
-        return this.myListsService.getIewaList(res, user);
+        try {
+            return this.myListsService.getIewaList(res, user);
+
+        }
+        catch (e) {
+            console.log(e)
+        }
     }
 
 
@@ -149,6 +155,30 @@ export class BusinessOwnerController {
     )
     {
         return this.myListsService.updateInterview(res, user, body);
+    }
+
+    @Post("request-candidate-info")
+    @ApiOkResponse({description: 'Candidate info requested successfully', status: 200})
+    @ApiResponse({status: 400, description: 'Bad request'})
+    @ApiResponse({status: 401, description: 'Unauthorized'})
+    @ApiResponse({status: 500, description: 'Internal server error'})
+    @ApiResponse({status: 404, description: 'Not Found'})
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                candidateId: { type: 'number' },
+            },
+            required: ['candidateId'],
+        },
+    })
+    async requestCandidateInfo(
+        @Res() res,
+        @CurrentAuthClientUser() user,
+        @Body() body: { candidateId: number }
+    )
+    {
+        return this.myListsService.requestCandidateInfo(res, user, body);
     }
 
 

@@ -20,4 +20,8 @@ export class AcceptedList {
     @ApiProperty()
     presentBy: string;
 
+    @Column({default: false})
+    @ApiProperty()
+    isRequestedCandidateInfo: boolean;
+
 }
