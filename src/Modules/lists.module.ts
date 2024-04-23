@@ -9,10 +9,11 @@ import {BusinessOwnerController} from "../Controller/BusinessOwner.controller";
 import {MyListsService} from "../Service/myLists.service";
 import {Interview} from "../Models/Interview.entity";
 import {TasksService} from "../Service/tasks.service";
+import {SeedController} from "../Controller/seed.controller";
 
 
 @Module({
-    controllers: [ListController,BusinessOwnerController],
+    controllers: [ListController,BusinessOwnerController,SeedController],
     providers: [ListService,MyListsService,TasksService],
     imports:[TypeOrmModule.forFeature([List,BusinessOwner, Candidate,Interview])],
     exports: []
