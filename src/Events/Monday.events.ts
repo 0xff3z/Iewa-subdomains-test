@@ -12,16 +12,12 @@ import {
     UpdateItemInMondayPayloadType
 } from "../Types/Types";
 import {BusinessOwner} from "../Models/BusinessOwner";
-import {Cron, CronExpression} from "@nestjs/schedule";
 import {Interview} from "../Models/Interview.entity";
 import {Invoice} from "../Models/Invoice";
 import {InvoiceService} from "../Service/invoice.service";
 import {RequestsService} from "../Service/requests.service";
-import {IewaList} from "../Models/IewaList.entity";
-import {isNumber} from "class-validator";
-import { Readable } from "stream";
-import axios from "axios";
 import {TraineeService} from "../Service/trainee.service";
+import {List} from "../Models/List.entity";
 
 
 export default class MondayEvents {
@@ -33,7 +29,7 @@ export default class MondayEvents {
         @InjectRepository(BusinessOwner) private businessOwnerRepository: Repository<BusinessOwner>,
         @InjectRepository(Interview) private interviewRepository: Repository<Interview>,
         @InjectRepository(Invoice) private invoicesRepository: Repository<Invoice>,
-        @InjectRepository(IewaList) private iewaListRepository: Repository<IewaList>,
+        @InjectRepository(List) private listRepository: Repository<List>,
         private mondayService: MondayService,
         private marketplaceService: MarketplaceService,
         private invoiceService: InvoiceService,
@@ -61,9 +57,9 @@ export default class MondayEvents {
                 }
               }`;
            const res = await this.monday.api(mutation).then(res => res);
-           console.log(res)
+
            if (res.data.create_item.id != null) {
-                console.log("Item created with ID:", res.data.create_item.id);
+
                this.eventEmitter.emit("monday-created-item", res.data.create_item.id);
 
                return res.data.create_item.id
@@ -74,7 +70,7 @@ export default class MondayEvents {
 
        }
        catch (e) {
-           console.log(e)
+           (e)
            return e
        }
     }
@@ -105,7 +101,7 @@ export default class MondayEvents {
             // @ts-ignore
             fetch("https://api.monday.com/v2/file", requestOptions)
                 .then((response) => response.text())
-                .then((result) => console.log(result))
+                .then((result) => (result))
                 .catch((error) => console.error(error));
         } catch (error) {
             console.error('Error uploading file to Monday.com:', error.response ? error.response.data : error.message);
@@ -141,11 +137,11 @@ export default class MondayEvents {
   }
 }`;
             const res = await this.monday.api(query).then(res => res);
-            console.log(res.data.boards[0].columns);
+            (res.data.boards[0].columns);
             return res;
         }
         catch (e) {
-            console.log(e)
+            (e)
             return e
         }
     }
@@ -218,7 +214,7 @@ export default class MondayEvents {
 
         }
         catch (e) {
-            console.log(e)
+            (e)
             return e
         }
     }
@@ -241,15 +237,15 @@ export default class MondayEvents {
 
 
             if (!isNaN(res)) {
-                console.log("Item exists with ID:", res);
+
                 return res
             } else {
-                console.log("Item does not exist or ID is not a valid number");
+                ("Item does not exist or ID is not a valid number");
                 return null;
             }
         }
         catch (e) {
-            console.log(e)
+            (e)
             return e
         }
     }
@@ -290,7 +286,7 @@ export default class MondayEvents {
         `;
 
                 const res = await this.monday.api(query);
-                console.log(res.data.boards[0].groups[0].items_page);
+                (res.data.boards[0].groups[0].items_page);
                 const items = res.data.boards[0].groups[0].items_page.items;
                 allItems = [...allItems, ...items];
                 cursor = res.data.boards[0].groups[0].items_page.cursor;
@@ -302,7 +298,7 @@ export default class MondayEvents {
 
             return allItems;
         } catch (e) {
-          console.log(e)
+          (e)
         }
     }
     @OnEvent("marketplace.get-from-monday-event-new")
@@ -339,7 +335,7 @@ export default class MondayEvents {
     `;
 
                 const res = await this.monday.api(query);
-                console.log(res)
+                console.log(res.data.boards[0].groups[0].items_page);
                 const items = res.data.boards[0].groups[0].items_page.items;
                 allItems = [...allItems, ...items];
                 cursor = res.data.boards[0].groups[0].items_page.cursor;
@@ -351,13 +347,13 @@ export default class MondayEvents {
 
             return allItems;
         } catch (e) {
-            console.log(e)
+           console.log(e)
         }
     }
 
     @OnEvent("addToListInMonday", { async: true })
     async handleAddMyListToMondayEvent(payload: any): Promise<any> {
-        console.log(payload)
+        (payload)
         try {
 
 
@@ -374,7 +370,7 @@ export default class MondayEvents {
             const columnValue = JSON.parse(currentValues.data.items[0].column_values[0].value);
             const currentCandidates = columnValue && columnValue.linkedPulseIds ? columnValue.linkedPulseIds.map(item => item.linkedPulseId) : [];
             currentCandidates.push(payload.candidateMondayId);
-            console.log(currentCandidates)
+            (currentCandidates)
 
             const columnValues = {
                 [payload.connectedBoard]: {
@@ -401,30 +397,43 @@ export default class MondayEvents {
     @OnEvent("addMultipleItemInList", { async: true })
     async handleAddMultipleItemInListEvent(payload: any): Promise<any> {
         try {
-            const businessOwner = await this.businessOwnerRepository.findOneOrFail({where: {mondayId: payload.userMondayId}, relations: ["myList","shortList","acceptedList","rejectedList","iewaList" ]});
+            const businessOwner = await this.businessOwnerRepository.find({where: {mondayId: payload.mondayId}, relations: ['list', 'list.candidate']});
+            const myList = businessOwner.flatMap(owner =>
+                owner.list.filter(listItem => listItem.type === 'myList')
+            );
+            const shortList = businessOwner.flatMap(owner =>
+                owner.list.filter(listItem => listItem.type === 'shortList')
+            );
+            const interviewList = businessOwner.flatMap(owner =>
+                owner.list.filter(listItem => listItem.type === 'interviewList')
+            );
+            const acceptedList = businessOwner.flatMap(owner =>
+                owner.list.filter(listItem => listItem.type === 'acceptedList')
+            );
+            const rejectedList = businessOwner.flatMap(owner =>
+                owner.list.filter(listItem => listItem.type === 'rejectedList')
+            );
+            const iewaList = businessOwner.flatMap(owner =>
+                owner.list.filter(listItem => listItem.type === 'iewaList')
+            );
 
-            const currentMyList = businessOwner.myList.map(item => item.mondayId);
-            const currentShortList = businessOwner.shortList.map(item => item.mondayId);
-            const currentAcceptedList = businessOwner.acceptedList.map(item => item.mondayId);
-            const currentRejectedList = businessOwner.rejectedList.map(item => item.mondayId);
-            const iewaList = businessOwner.iewaList.map(item => item.id);
 
 
             const columnValues = {
                 "connect_boards19": {
-                    "item_ids": currentMyList
+                    "item_ids": myList.map(item => item.mondayId)
                 },
                 "connect_boards9": {
-                    "item_ids": currentShortList
+                    "item_ids": shortList.map(item => item.mondayId)
                 },
                 "connect_boards95": {
-                    "item_ids": currentAcceptedList
+                    "item_ids": acceptedList.map(item => item.mondayId)
                 },
                 "connect_boards953": {
-                    "item_ids": currentRejectedList
+                    "item_ids": rejectedList.map(item => item.mondayId)
                 },
                 "connect_boards5": {
-                    "item_ids": iewaList
+                    "item_ids": iewaList.map(item => item.mondayId)
                 }
             };
 
@@ -433,10 +442,10 @@ export default class MondayEvents {
             id
         }
       }`;
-            console.log(columnValues)
 
             const res = await this.monday.api(mutation);
-            if (res.data.change_multiple_column_values.id != null) {
+
+            if (res.data && res.data.change_multiple_column_values.id != null) {
                 this.eventEmitter.emit("addMultipleItemInListFinished", { userMondayId: payload.userMondayId });
 
                 return res;
@@ -476,13 +485,13 @@ export default class MondayEvents {
   }
 }`;
             const res = await this.monday.api(mutation);
-            console.log(res)
+            (res)
             if (!isNaN(res)) {
                 return res
             }
         }
         catch (e) {
-            console.log(e)
+            (e)
             return e
         }
     }
@@ -524,24 +533,24 @@ export default class MondayEvents {
             }
         }
         catch (e) {
-            console.log(e);
+            (e);
             return e;
         }
     }
 
     @OnEvent("createItemUpdateInMonday", { async: true })
     async createItemUpdateInMonday(payload: CreateItemUpdatePayloadType) {
-        console.log(payload.body);
+        (payload.body);
         try {
             let query = `mutation {create_update (item_id: ${payload.itemId}, body: \"${payload.body.replace(/"/g, '\\"')}\") { id }}`;
             const res = await this.monday.api(query);
-            console.log(res);
+            (res);
             if (!isNaN(res)) {
                 return res;
             }
         }
         catch (e) {
-            console.log(e);
+            (e);
             return e;
         }
     }
@@ -570,14 +579,14 @@ export default class MondayEvents {
             }
         }`;
             res = await this.monday.api(mutation);
-            console.log(res);
+            (res);
 
             if (res.data.change_multiple_column_values.id != null) {
                 this.eventEmitter.emit("monday-changed-multiple-column-values");
                 return res;
             }
         } catch (e) {
-            console.log(e);
+            (e);
             return e;
         }
     }
@@ -591,13 +600,13 @@ export default class MondayEvents {
     }
 }`;
             const res = await this.monday.api(mutation);
-            console.log(res);
+            (res);
             if (!isNaN(res)) {
                 return res;
             }
         }
         catch (e) {
-            console.log(e);
+            (e);
             return e;
         }
     }
@@ -605,27 +614,27 @@ export default class MondayEvents {
     @OnEvent("checkListAndAddToListInMonday", { async: true })
     async checkListAndAddToListInMonday(payload: any) {
         try {
-            const businessOwner = await this.businessOwnerRepository.findOneOrFail({ where: { id: payload.userId }, relations: ["myList","shortList","acceptedList"] });
-            if (payload.type === "myList" || payload.type === "shortList")
-            {
-                await this.handleAddMultipleItemInListEvent({
-                    connectedBoard: "connect_boards19",
-                    boardId: "1399424616",
-                    userMondayId: payload.userMondayId,
-                    candidateMondayId: businessOwner.myList.map(item => item.mondayId)
-                })
-                setTimeout(async () => {
-                    await this.handleAddMultipleItemInListEvent({
-                        connectedBoard: "connect_boards9",
-                        boardId: "1399424616",
-                        userMondayId: payload.userMondayId,
-                        candidateMondayId: businessOwner.shortList.map(item => item.mondayId)
-                    })
-                }, 4000);
-            }
+            // const businessOwner = await this.businessOwnerRepository.findOneOrFail({ where: { id: payload.userId }, relations: ["myList","shortList","acceptedList"] });
+            // if (payload.type === "myList" || payload.type === "shortList")
+            // {
+            //     await this.handleAddMultipleItemInListEvent({
+            //         connectedBoard: "connect_boards19",
+            //         boardId: "1399424616",
+            //         userMondayId: payload.userMondayId,
+            //         candidateMondayId: businessOwner.myList.map(item => item.mondayId)
+            //     })
+            //     setTimeout(async () => {
+            //         await this.handleAddMultipleItemInListEvent({
+            //             connectedBoard: "connect_boards9",
+            //             boardId: "1399424616",
+            //             userMondayId: payload.userMondayId,
+            //             candidateMondayId: businessOwner.shortList.map(item => item.mondayId)
+            //         })
+            //     }, 4000);
+            // }
 
         } catch (e) {
-            console.log(e);
+            (e);
             return e;
         }
 
@@ -670,7 +679,7 @@ export default class MondayEvents {
             const invoices = await this.invoiceService.createAllInvoices(res, businessOwner);
             return res;
         } catch (e) {
-            console.log(e);
+            (e);
             return e;
         }
     }
@@ -718,7 +727,7 @@ export default class MondayEvents {
             const requests = await this.requestsService.createAllRequests(res, businessOwner);
             return res;
         } catch (e) {
-            console.log(e);
+            (e);
             return e;
         }
     }
@@ -726,89 +735,85 @@ export default class MondayEvents {
 
     @OnEvent("getIewaList", { async: true })
     async getIewaList(payload: any) {
-        console.log(payload)
         try {
             const query = `query {
-  items (ids:[${payload.itemId}]) {
-    column_values (ids: ["connect_boards5"]) {
-      ... on BoardRelationValue {
-        linked_item_ids
-        linked_items {
-          id
-          name
-          column_values {
-          id
-                value
-            ... on StatusValue {
-              text
-            }
-            ... on TextValue {
-              text
-            }
-              ... on FileValue {
-                    files
-                    id
-                    
+            items (ids: [${payload.itemId}]) {
+                column_values (ids: ["connect_boards5"]) {
+                    ... on BoardRelationValue {
+                        linked_item_ids
+                        linked_items {
+                            id
+                            name
+                        }
+                    }
                 }
-            ... on DateValue {
-              date
             }
-            ... on DropdownValue {
-                text
-                }
-                
-          }
-        }
-      }
-    }
-  }
-}`;
-            const res = await this.monday.api(query)
-                .then(res => res.data.items[0].column_values[0].linked_items);
+        }`;
+            const response = await this.monday.api(query);
+            const items = response.data.items[0]?.column_values[0]?.linked_items;
 
-            console.log(res)
-            if (res.length == 0) {
-                const businessOwner = await this.businessOwnerRepository.findOneOrFail({where: {id: payload.userId},relations: ["iewaList"]});
-                const iewaList = businessOwner.iewaList.map(item => item.id);
-                if (iewaList.length > 0) {
-                    await this.iewaListRepository.delete(iewaList);
-                    this.eventEmitter.emit("IewaListFinished", { userMondayId: payload.mondayId });
-                    return;
+            const businessOwner = await this.businessOwnerRepository.findOneOrFail({
+                where: { mondayId: payload.itemId },
+                relations: ["list", "list.candidate"]
+            });
 
-                }
-
-                this.eventEmitter.emit("IewaListFinished", { userMondayId: payload.mondayId });
+            if (!items || items.length === 0) {
+                // If no items are coming from Monday, delete all "iewaList" from the database
+                await this.listRepository.delete({
+                    businessOwner: businessOwner,
+                    type: "iewaList"
+                });
+                this.eventEmitter.emit("iewaListFinished");
                 return;
             }
 
+            const mondayItemIds = items.map(item => item.id);
 
-            const businessOwner = await this.businessOwnerRepository.findOneOrFail({where: {id: payload.mondayId}});
-            const marketPlaceObjs = await this.mondayService.createMarketplaceObjectNew(res);
+            // Delete lists that are in the DB but not coming from Monday
+            const listsToDelete = businessOwner.list.filter(listItem =>
+                listItem.type === "iewaList" && !mondayItemIds.includes(listItem.candidate.id.toString())
+            );
 
-            await Promise.all(marketPlaceObjs.map(async (item) => {
-                const exists = await this.iewaListRepository.findOne({ where: { id: item.id } });
-                console.log(exists)
-                if (!exists) {
-                    const candidate = this.iewaListRepository.create(item);
-                    await this.iewaListRepository.save({
-                        businessOwner: businessOwner,
-                        ...candidate
-                    });
-                    console.log("Iewa List item created with ID:", item.id);
-                    this.eventEmitter.emit("IewaListFinished", { userMondayId: payload.mondayId });
-                } else {
-                    console.log("Iewa List item already exists with ID:", item.id);
-                    this.eventEmitter.emit("IewaListFinished", { userMondayId: payload.mondayId });
+            for (const list of listsToDelete) {
+                await this.listRepository.delete({ id: list.id });
+            }
 
+            // Proceed with adding or updating lists
+            for (const item of items) {
+                const candidate = await this.candidateRepository.findOne({
+                    where: { id: item.id }
+                });
+                if (!candidate) {
+                    continue; // Skip if candidate does not exist
                 }
-            }));
 
+                const alreadyExistsInAnyList = businessOwner.list.some(listItem =>
+                    listItem.candidate.id === candidate.id
+                );
+
+                const alreadyExistsInIewaList = businessOwner.list.some(listItem =>
+                    listItem.candidate.id === candidate.id && listItem.type === "iewaList"
+                );
+
+                if (!alreadyExistsInIewaList && !alreadyExistsInAnyList) {
+                    const newList = this.listRepository.create({
+                        type: "iewaList",
+                        candidate: candidate,
+                        businessOwner: businessOwner,
+                        presentBy: "مرشح بواسطة ايوا",
+                        mondayId: candidate.id
+                    });
+                    await this.listRepository.save(newList);
+                }
+            }
+
+            this.eventEmitter.emit("iewaListFinished", items);
         } catch (e) {
-            console.log(e);
+            console.error(e);
             return e;
         }
-
     }
+
 
     @OnEvent("monday-update-item")
     async handleMondayUpdateItemEvent(payload: any) {
@@ -826,7 +831,7 @@ export default class MondayEvents {
             }
         }
         catch (e) {
-            console.log(e)
+            (e)
             return e
         }
     }
@@ -875,7 +880,7 @@ export default class MondayEvents {
             )
         }
         catch (e) {
-            console.log(e)
+            (e)
             return e
         }
     }
@@ -916,7 +921,7 @@ export default class MondayEvents {
         `;
 
                 const res = await this.monday.api(query);
-                console.log(res.data.boards[0].groups[0].items_page);
+                (res.data.boards[0].groups[0].items_page);
                 const items = res.data.boards[0].groups[0].items_page.items;
                 allItems = [...allItems, ...items];
                 cursor = res.data.boards[0].groups[0].items_page.cursor;
@@ -928,7 +933,7 @@ export default class MondayEvents {
 
             return allItems;
         } catch (e) {
-            console.log(e)
+            (e)
         }
     }
 

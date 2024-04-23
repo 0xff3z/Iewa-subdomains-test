@@ -3,16 +3,12 @@ import {EventEmitter2} from "@nestjs/event-emitter";
 import {CandidateRequest} from "../Models/CandidateRequest.entity";
 import {InjectRepository} from "@nestjs/typeorm";
 import {Repository} from "typeorm";
-import {RejectedList} from "../Models/RejectedList.entity";
-import {IewaList} from "../Models/IewaList.entity";
 
 @Injectable()
 export class RequestsService {
     constructor(
         private eventEmitter: EventEmitter2,
         @InjectRepository(CandidateRequest) private candidateRequestRepository: Repository<CandidateRequest>,
-        @InjectRepository(RejectedList) private readonly rejectedListRepository: Repository<RejectedList>,
-        @InjectRepository(IewaList) private readonly iewaListRepository: Repository<IewaList>,
 
 
     ) {
@@ -233,21 +229,20 @@ export class RequestsService {
 
     async rejectRequest(body, businessOwner,res) {
         try {
-            await this.iewaListRepository.delete({id:body.candidateId})
-
-            const addToRejectedList = await this.rejectedListRepository.create({
-                mondayId:body.candidateId,
-                businessOwner:businessOwner,
-                candidate:body.candidateId,
-            })
-
-            await this.rejectedListRepository.save(addToRejectedList)
+            // await this.iewaListRepository.delete({mondayId:body.candidateId})
+            //
+            // const addToRejectedList = await this.rejectedListRepository.create({
+            //     mondayId:body.candidateId,
+            //     businessOwner:businessOwner,
+            //     candidate:body.candidateId,
+            // })
+            //
+            // await this.rejectedListRepository.save(addToRejectedList)
 
 
             this.eventEmitter.emit("createItemUpdateInMonday",{
                 itemId:body.candidateId,
                 body:`
-                        السبب: ${body.reason},
                         المرحلة" :"مرشح من ايوا",
                         اسم الشركة" :${businessOwner.company_name},`
 

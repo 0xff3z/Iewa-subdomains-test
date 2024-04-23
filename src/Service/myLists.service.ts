@@ -2,26 +2,18 @@ import {Injectable} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import {BusinessOwner} from "../Models/BusinessOwner";
 import {Repository} from "typeorm";
-import {MyList} from "../Models/MyList.entity";
-import {ShortList} from "../Models/ShortList.entity";
-import {AcceptedList} from "../Models/AcceptedList.entity";
 import {EventEmitter2} from "@nestjs/event-emitter";
-import {RejectedList} from "../Models/RejectedList.entity";
 import {Interview} from "../Models/Interview.entity";
 import {Candidate} from "../Models/Candidate.entity";
-import {IewaList} from "../Models/IewaList.entity";
+import {List} from "../Models/List.entity";
 
 @Injectable()
 export class MyListsService {
     constructor(
         @InjectRepository(BusinessOwner) private readonly businessOwnerRepository: Repository<BusinessOwner>,
-        @InjectRepository(MyList) private readonly myListRepository: Repository<MyList>,
-        @InjectRepository(ShortList) private readonly shortListRepository: Repository<ShortList>,
-        @InjectRepository(AcceptedList) private readonly acceptedListRepository: Repository<AcceptedList>,
-        @InjectRepository(RejectedList) private readonly rejectedListRepository: Repository<RejectedList>,
         @InjectRepository(Interview) private readonly interviewRepository: Repository<Interview>,
         @InjectRepository(Candidate) private readonly candidateRepository: Repository<Candidate>,
-        @InjectRepository(IewaList) private readonly iewaListRepository: Repository<IewaList>,
+        @InjectRepository(List) private readonly listRepository: Repository<List>,
         private eventEmitter: EventEmitter2
 
     ) {
@@ -31,17 +23,17 @@ export class MyListsService {
         try {
             const businessOwner = await this.businessOwnerRepository.findOne({
                 where: { id: user.id },
-                relations: ["myList", "myList.candidate", "shortList", "shortList.candidate", "acceptedList", "acceptedList.candidate", "rejectedList", "rejectedList.candidate", "interview", "interview.candidate"]
+                relations: ["list","list.candidate","interview", "interview.candidate"]
             });
 
 
             return res.status(200).json({
                 message: "My Lists retrieved successfully",
                 data: {
-                    shortList: businessOwner.shortList,
-                    myList: businessOwner.myList,
-                    acceptedList: businessOwner.acceptedList,
-                    rejectedList: businessOwner.rejectedList,
+                    shortList: businessOwner.list.filter((list) => list.type == "shortList"),
+                    myList: businessOwner.list.filter((list) => list.type == "myList"),
+                    acceptedList: businessOwner.list.filter((list) => list.type == "acceptedList"),
+                    rejectedList: businessOwner.list.filter((list) => list.type == "rejectedList"),
                     interview: businessOwner.interview.filter((interview) => interview.acceptionStatus != "مقبول"),
                 }
             });
@@ -54,172 +46,193 @@ export class MyListsService {
 
     async addToList(res, user:BusinessOwner, body: { type: string, candidateId: any,interviewId:number, presentBy:string}) {
         try {
-            const businessOwner = await this.businessOwnerRepository.findOne({where: {id:user.id},relations:["myList","shortList","acceptedList","rejectedList"]})
-            switch (body.type) {
-                case "myList":
-                    const myList = await this.myListRepository.findOne({where: {mondayId:body.candidateId, businessOwner:businessOwner}})
-                    const shortListE = await this.shortListRepository.findOne({where: {mondayId:body.candidateId, businessOwner:businessOwner}})
-                    const acceptedListE = await this.acceptedListRepository.findOne({where: {mondayId:body.candidateId, businessOwner:businessOwner}})
-                    const rejectedListE = await this.rejectedListRepository.findOne({where: {mondayId:body.candidateId, businessOwner:businessOwner}})
-                    if (myList || shortListE || acceptedListE || rejectedListE) {
-                        return res.status(404).json({
-                            message: "المرشح مضاف مسبقا"
+            const businessOwner = await this.businessOwnerRepository.findOne({where: {id:user.id}})
+            const list = await this.listRepository.findOne({where: {mondayId:body.candidateId,type:body.type}})
+            if (list) {
+                return res.status(404).json({
+                    message: "المرشح مضاف مسبقا"
 
-                        })
-                    }
+                })
+            } else {
+                const candidate = await this.candidateRepository.findOne({where: {id:body.candidateId}})
+                const list = await this.listRepository.create({
+                    mondayId:body.candidateId,
+                    businessOwner:businessOwner,
+                    candidate:candidate,
+                    presentBy:body.presentBy,
+                    type:body.type
+                })
+                await this.listRepository.save(list)
+                return res.status(200).json({
+                    message: "Candidate added to list successfully",
 
-
-                    const newMyList = await this.myListRepository.create({
-                        mondayId:body.candidateId,
-                        businessOwner:businessOwner,
-                        candidate:body.candidateId,
-                        presentBy:body.presentBy
-                    })
-                    setTimeout(() => {
-                        this.eventEmitter.emit("addMultipleItemInList",{
-                            userMondayId:user.mondayId,
-
-                        })
-                    }, 4000);
-
-                    await this.myListRepository.save(newMyList)
-                    return res.status(200).json({
-                        message: "Candidate added to list successfully",
-
-                    })
-                case "shortList":
-                    const shortList = await this.shortListRepository.findOne({where: {mondayId:body.candidateId}})
-                    if (shortList) {
-                        return res.status(404).json({
-                            message: "Candidate already added to list"
-
-                        })
-                    }
-
-                    const newShortList = await this.shortListRepository.create({
-                        mondayId:body.candidateId,
-                        businessOwner:businessOwner,
-                        candidate:body.candidateId,
-                        presentBy:body.presentBy
-                    })
-                    const deleteFromMyList = await this.myListRepository.delete({mondayId:body.candidateId})
-                    setTimeout(() => {
-                        this.eventEmitter.emit("addMultipleItemInList",{
-                            userMondayId:user.mondayId,
-
-                        })
-                    }, 4000);
-
-                    await this.shortListRepository.save(newShortList)
-                    return res.status(200).json({
-                        message: "Candidate added to list successfully",
-
-                    })
-                case "acceptedList":
-                    const acceptedList = await this.acceptedListRepository.findOne({where: {mondayId:body.candidateId}})
-                    if (acceptedList) {
-                        return res.status(404).json({
-                            message: "Candidate already added to list"
-
-                        })
-                    }
-
-                    const newAcceptedList = await this.acceptedListRepository.create({
-                        mondayId:body.candidateId,
-                        businessOwner:businessOwner,
-                        candidate:body.candidateId,
-                        presentBy:body.presentBy
-                    })
-                    setTimeout(() => {
-                        this.eventEmitter.emit("addMultipleItemInList",{
-                            userMondayId:user.mondayId,
-
-                        })
-                    }, 4000);
-
-                    await this.acceptedListRepository.save(newAcceptedList)
-                    return res.status(200).json({
-                        message: "Candidate added to list successfully",
-
-                    })
-                case "rejectList":
-                    const returnToMyList = await this.myListRepository.create({
-                        mondayId:body.candidateId,
-                        businessOwner:businessOwner,
-                        candidate:body.candidateId,
-                        presentBy:body.presentBy
-                    })
-                    const deleteFromRejectedList = await this.rejectedListRepository.delete({mondayId:body.candidateId})
-                    await this.myListRepository.save(returnToMyList)
-                    setTimeout(() => {
-                        this.eventEmitter.emit("addMultipleItemInList",{
-                            userMondayId:user.mondayId,
-
-                        })
-                    }, 1000);
-
-                    return res.status(200).json({
-                        message: "Candidate added to list successfully",
-
-                    })
-                case "interview":
-                    const interview = await this.interviewRepository.findOne({where: {id:body.interviewId}})
-                    interview.acceptionStatus= "مقبول"
-                    await this.interviewRepository.save(interview)
-                    const addToAcceptedList = await this.acceptedListRepository.create({
-                        mondayId:body.candidateId,
-                        businessOwner:businessOwner,
-                        candidate:body.candidateId,
-                        presentBy:body.presentBy
-                    })
-                    await this.acceptedListRepository.save(addToAcceptedList)
-                    setTimeout(() => {
-                        this.eventEmitter.emit("addMultipleItemInList",{
-                            userMondayId:user.mondayId,
-
-                        })
-                    }, 4000);
-                    return res.status(200).json({
-                        message: "Candidate added to list successfully",
-
-                    })
-
-                case "iewaList":
-                    const iewaList = await this.iewaListRepository.findOne({where: {id: body.candidateId}})
-                    // @ts-ignore
-                    const candidate = await this.candidateRepository.create({
-                        type: "iewa",
-                        ...iewaList
-                    })
-                    await this.candidateRepository.save(candidate)
-
-                    const deleteFromIewaList = await this.iewaListRepository.delete({id: body.candidateId})
-                    console.log(deleteFromIewaList)
-
-                    const myLists = await this.myListRepository.create({
-                        mondayId: body.candidateId,
-                        businessOwner: businessOwner,
-                        candidate: candidate,
-                        presentBy: "مرشح بواسطة ايوا"
-                    })
-                    await this.myListRepository.save(myLists)
-
-                    setTimeout(() => {
-                        this.eventEmitter.emit("addMultipleItemInList", {
-                            userMondayId: user.mondayId,
-                        })
-                    }, 1000);
-                    this.eventEmitter.once("addMultipleItemInListFinished", async (data) => {
-                        return res.status(200).json({
-                            message: "Candidate added to list successfully",
-                        })
-                    }
-                    )
-
-
-
+                })
 
             }
+
+            // switch (body.type) {
+            //     case "myList":
+            //         const myList = await this.myListRepository.findOne({where: {mondayId:body.candidateId, businessOwner:businessOwner}})
+            //         const shortListE = await this.shortListRepository.findOne({where: {mondayId:body.candidateId, businessOwner:businessOwner}})
+            //         const acceptedListE = await this.acceptedListRepository.findOne({where: {mondayId:body.candidateId, businessOwner:businessOwner}})
+            //         const rejectedListE = await this.rejectedListRepository.findOne({where: {mondayId:body.candidateId, businessOwner:businessOwner}})
+            //         if (myList || shortListE || acceptedListE || rejectedListE) {
+            //             return res.status(404).json({
+            //                 message: "المرشح مضاف مسبقا"
+            //
+            //             })
+            //         }
+            //
+            //
+            //         const newMyList = await this.myListRepository.create({
+            //             mondayId:body.candidateId,
+            //             businessOwner:businessOwner,
+            //             candidate:body.candidateId,
+            //             presentBy:body.presentBy
+            //         })
+            //         setTimeout(() => {
+            //             this.eventEmitter.emit("addMultipleItemInList",{
+            //                 userMondayId:user.mondayId,
+            //
+            //             })
+            //         }, 4000);
+            //
+            //         await this.myListRepository.save(newMyList)
+            //         return res.status(200).json({
+            //             message: "Candidate added to list successfully",
+            //
+            //         })
+            //     case "shortList":
+            //         const shortList = await this.shortListRepository.findOne({where: {mondayId:body.candidateId}})
+            //         if (shortList) {
+            //             return res.status(404).json({
+            //                 message: "Candidate already added to list"
+            //
+            //             })
+            //         }
+            //
+            //         const newShortList = await this.shortListRepository.create({
+            //             mondayId:body.candidateId,
+            //             businessOwner:businessOwner,
+            //             candidate:body.candidateId,
+            //             presentBy:body.presentBy
+            //         })
+            //         const deleteFromMyList = await this.myListRepository.delete({mondayId:body.candidateId})
+            //         setTimeout(() => {
+            //             this.eventEmitter.emit("addMultipleItemInList",{
+            //                 userMondayId:user.mondayId,
+            //
+            //             })
+            //         }, 4000);
+            //
+            //         await this.shortListRepository.save(newShortList)
+            //         return res.status(200).json({
+            //             message: "Candidate added to list successfully",
+            //
+            //         })
+            //     case "acceptedList":
+            //         const acceptedList = await this.acceptedListRepository.findOne({where: {mondayId:body.candidateId}})
+            //         if (acceptedList) {
+            //             return res.status(404).json({
+            //                 message: "Candidate already added to list"
+            //
+            //             })
+            //         }
+            //
+            //         const newAcceptedList = await this.acceptedListRepository.create({
+            //             mondayId:body.candidateId,
+            //             businessOwner:businessOwner,
+            //             candidate:body.candidateId,
+            //             presentBy:body.presentBy
+            //         })
+            //         setTimeout(() => {
+            //             this.eventEmitter.emit("addMultipleItemInList",{
+            //                 userMondayId:user.mondayId,
+            //
+            //             })
+            //         }, 4000);
+            //
+            //         await this.acceptedListRepository.save(newAcceptedList)
+            //         return res.status(200).json({
+            //             message: "Candidate added to list successfully",
+            //
+            //         })
+            //     case "rejectList":
+            //         const returnToMyList = await this.myListRepository.create({
+            //             mondayId:body.candidateId,
+            //             businessOwner:businessOwner,
+            //             candidate:body.candidateId,
+            //             presentBy:body.presentBy
+            //         })
+            //         const deleteFromRejectedList = await this.rejectedListRepository.delete({mondayId:body.candidateId})
+            //         await this.myListRepository.save(returnToMyList)
+            //         setTimeout(() => {
+            //             this.eventEmitter.emit("addMultipleItemInList",{
+            //                 userMondayId:user.mondayId,
+            //
+            //             })
+            //         }, 1000);
+            //
+            //         return res.status(200).json({
+            //             message: "Candidate added to list successfully",
+            //
+            //         })
+            //     case "interview":
+            //         const interview = await this.interviewRepository.findOne({where: {id:body.interviewId}})
+            //         interview.acceptionStatus= "مقبول"
+            //         await this.interviewRepository.save(interview)
+            //         const addToAcceptedList = await this.acceptedListRepository.create({
+            //             mondayId:body.candidateId,
+            //             businessOwner:businessOwner,
+            //             candidate:body.candidateId,
+            //             presentBy:body.presentBy
+            //         })
+            //         await this.acceptedListRepository.save(addToAcceptedList)
+            //         setTimeout(() => {
+            //             this.eventEmitter.emit("addMultipleItemInList",{
+            //                 userMondayId:user.mondayId,
+            //
+            //             })
+            //         }, 4000);
+            //         return res.status(200).json({
+            //             message: "Candidate added to list successfully",
+            //
+            //         })
+            //
+            //     case "iewaList":
+            //         const iewaList = await this.iewaListRepository.findOne({where: {mondayId: body.candidateId}})
+            //         const candidate = await this.candidateRepository.create({
+            //             type: "iewa",
+            //             ...iewaList
+            //         })
+            //         await this.candidateRepository.save(candidate)
+            //
+            //         const deleteFromIewaList = await this.iewaListRepository.delete({mondayId: body.candidateId})
+            //
+            //         const myLists = await this.myListRepository.create({
+            //             mondayId: body.candidateId,
+            //             businessOwner: businessOwner,
+            //             candidate: candidate,
+            //             presentBy: "مرشح بواسطة ايوا"
+            //         })
+            //         await this.myListRepository.save(myLists)
+            //
+            //         setTimeout(() => {
+            //             this.eventEmitter.emit("addMultipleItemInList", {
+            //                 userMondayId: user.mondayId,
+            //             })
+            //         }, 1000);
+            //         this.eventEmitter.once("addMultipleItemInListFinished", async (data) => {
+            //             return res.status(200).json({
+            //                 message: "Candidate added to list successfully",
+            //             })
+            //         }
+            //         )
+            //
+            //
+            //
+            //
+            // }
 
 
         } catch (error) {
@@ -231,129 +244,129 @@ export class MyListsService {
     async removeFromList(res, user:BusinessOwner, body: { type: string, candidateId: any, reason:string, interviewId:number}) {
         try {
             const businessOwner = await this.businessOwnerRepository.findOne({where: {id:user.id},relations:["myList","shortList","acceptedList","rejectedList"]})
-            switch (body.type) {
-                case "myList":
-                    const myList = await this.myListRepository.findOne({where: {mondayId: body.candidateId}})
-                    if (!myList) {
-                        return res.status(404).json({
-                            message: "Candidate not found in list"
-
-                        })
-                    }
-                    this.eventEmitter.emit("createItemUpdateInMonday",{
-                        itemId:body.candidateId,
-                        body:`
-                        السبب: ${body.reason},
-                        المرحلة" :"قائمتي",
-                        اسم الشركة" :${user.company_name},`
-
-                    })
-                    const deleteFromMyList = await this.myListRepository.delete({mondayId: body.candidateId})
-                    const addToRejectedListT = await this.rejectedListRepository.create({
-                        mondayId:body.candidateId,
-                        businessOwner:businessOwner,
-                        candidate:body.candidateId,
-                    })
-                    await this.rejectedListRepository.save(addToRejectedListT)
-                    setTimeout(() => {
-                        this.eventEmitter.emit("addMultipleItemInList",{
-                            userMondayId:user.mondayId,
-
-                        })
-                    }, 4000);
-
-                    return res.status(200).json({
-                        message: "Candidate removed from list successfully",
-
-                    })
-                case "shortList":
-                    const shortList = await this.shortListRepository.findOne({where: {mondayId: body.candidateId}})
-                    if (!shortList) {
-                        return res.status(404).json({
-                            message: "Candidate not found in list"
-
-                        })
-                    }
-                    const deleteFromShortList = await this.shortListRepository.delete({mondayId: body.candidateId})
-                    const addToRejectedList = await this.rejectedListRepository.create({
-                        mondayId:body.candidateId,
-                        businessOwner:businessOwner,
-                        candidate:body.candidateId,
-                    })
-                    await this.rejectedListRepository.save(addToRejectedList)
-                    this.eventEmitter.emit("createItemUpdateInMonday",{
-                        itemId:body.candidateId,
-                        body:`
-                        السبب: ${body.reason},
-                        المرحلة" :"قائمتي القصيرة",
-                        اسم الشركة" :${user.company_name},`
-
-                    })
-                    setTimeout(() => {
-                        this.eventEmitter.emit("addMultipleItemInList",{
-                            userMondayId:user.mondayId,
-
-                        })
-                    }, 4000);
-
-                    return res.status(200).json({
-                        message: "Candidate removed from list successfully",
-
-                    })
-                case "interview":
-                    const addToAcceptedList = await this.acceptedListRepository.create({
-                        mondayId:body.candidateId,
-                        businessOwner:businessOwner,
-                        candidate:body.candidateId,
-                    })
-                    const interview = await this.interviewRepository.findOne({where: {id:body.interviewId}})
-                    await this.acceptedListRepository.save(addToAcceptedList)
-                    interview.acceptionStatus = "مقبول"
-                    await this.interviewRepository.save(interview)
-                    const deleteFromAcceptedList = await this.acceptedListRepository.delete({mondayId: body.candidateId})
-                    setTimeout(() => {
-                        this.eventEmitter.emit("addMultipleItemInList",{
-                            userMondayId:user.mondayId,
-
-                        })
-                    }, 4000);
-
-                    return res.status(200).json({
-                        message: "Candidate removed from list successfully",
-
-                    })
-                case "jobInterview":
-                    const interviewD = await this.interviewRepository.delete({id:body.interviewId})
-                    console.log(body)
-                    const addToRejectedListI = await this.rejectedListRepository.create({
-                        mondayId:body.candidateId,
-                        businessOwner:businessOwner,
-                        candidate:body.candidateId,
-                    })
-                    await this.rejectedListRepository.save(addToRejectedListI)
-
-                    this.eventEmitter.emit("createItemUpdateInMonday",{
-                        itemId:body.candidateId,
-                        body:`
-                        السبب: ${body.reason},
-                        المرحلة" :"المقابلة",
-                        اسم الشركة" :${user.company_name},`
-
-                    })
-
-
-                    setTimeout(() => {
-                        this.eventEmitter.emit("addMultipleItemInList",{
-                            userMondayId:user.mondayId,
-
-                        })
-                    }, 4000);
-
-                    return res.status(200).json({
-                        message: "Candidate removed from list successfully",
-
-                    })
-            }
+            // switch (body.type) {
+            //     case "myList":
+            //         const myList = await this.myListRepository.findOne({where: {mondayId: body.candidateId}})
+            //         if (!myList) {
+            //             return res.status(404).json({
+            //                 message: "Candidate not found in list"
+            //
+            //             })
+            //         }
+            //         this.eventEmitter.emit("createItemUpdateInMonday",{
+            //             itemId:body.candidateId,
+            //             body:`
+            //             السبب: ${body.reason},
+            //             المرحلة" :"قائمتي",
+            //             اسم الشركة" :${user.company_name},`
+            //
+            //         })
+            //         const deleteFromMyList = await this.myListRepository.delete({mondayId: body.candidateId})
+            //         const addToRejectedListT = await this.rejectedListRepository.create({
+            //             mondayId:body.candidateId,
+            //             businessOwner:businessOwner,
+            //             candidate:body.candidateId,
+            //         })
+            //         await this.rejectedListRepository.save(addToRejectedListT)
+            //         setTimeout(() => {
+            //             this.eventEmitter.emit("addMultipleItemInList",{
+            //                 userMondayId:user.mondayId,
+            //
+            //             })
+            //         }, 4000);
+            //
+            //         return res.status(200).json({
+            //             message: "Candidate removed from list successfully",
+            //
+            //         })
+            //     case "shortList":
+            //         const shortList = await this.shortListRepository.findOne({where: {mondayId: body.candidateId}})
+            //         if (!shortList) {
+            //             return res.status(404).json({
+            //                 message: "Candidate not found in list"
+            //
+            //             })
+            //         }
+            //         const deleteFromShortList = await this.shortListRepository.delete({mondayId: body.candidateId})
+            //         const addToRejectedList = await this.rejectedListRepository.create({
+            //             mondayId:body.candidateId,
+            //             businessOwner:businessOwner,
+            //             candidate:body.candidateId,
+            //         })
+            //         await this.rejectedListRepository.save(addToRejectedList)
+            //         this.eventEmitter.emit("createItemUpdateInMonday",{
+            //             itemId:body.candidateId,
+            //             body:`
+            //             السبب: ${body.reason},
+            //             المرحلة" :"قائمتي القصيرة",
+            //             اسم الشركة" :${user.company_name},`
+            //
+            //         })
+            //         setTimeout(() => {
+            //             this.eventEmitter.emit("addMultipleItemInList",{
+            //                 userMondayId:user.mondayId,
+            //
+            //             })
+            //         }, 4000);
+            //
+            //         return res.status(200).json({
+            //             message: "Candidate removed from list successfully",
+            //
+            //         })
+            //     case "interview":
+            //         const addToAcceptedList = await this.acceptedListRepository.create({
+            //             mondayId:body.candidateId,
+            //             businessOwner:businessOwner,
+            //             candidate:body.candidateId,
+            //         })
+            //         const interview = await this.interviewRepository.findOne({where: {id:body.interviewId}})
+            //         await this.acceptedListRepository.save(addToAcceptedList)
+            //         interview.acceptionStatus = "مقبول"
+            //         await this.interviewRepository.save(interview)
+            //         const deleteFromAcceptedList = await this.acceptedListRepository.delete({mondayId: body.candidateId})
+            //         setTimeout(() => {
+            //             this.eventEmitter.emit("addMultipleItemInList",{
+            //                 userMondayId:user.mondayId,
+            //
+            //             })
+            //         }, 4000);
+            //
+            //         return res.status(200).json({
+            //             message: "Candidate removed from list successfully",
+            //
+            //         })
+            //     case "jobInterview":
+            //         const interviewD = await this.interviewRepository.delete({id:body.interviewId})
+            //         console.log(body)
+            //         const addToRejectedListI = await this.rejectedListRepository.create({
+            //             mondayId:body.candidateId,
+            //             businessOwner:businessOwner,
+            //             candidate:body.candidateId,
+            //         })
+            //         await this.rejectedListRepository.save(addToRejectedListI)
+            //
+            //         this.eventEmitter.emit("createItemUpdateInMonday",{
+            //             itemId:body.candidateId,
+            //             body:`
+            //             السبب: ${body.reason},
+            //             المرحلة" :"المقابلة",
+            //             اسم الشركة" :${user.company_name},`
+            //
+            //         })
+            //
+            //
+            //         setTimeout(() => {
+            //             this.eventEmitter.emit("addMultipleItemInList",{
+            //                 userMondayId:user.mondayId,
+            //
+            //             })
+            //         }, 4000);
+            //
+            //         return res.status(200).json({
+            //             message: "Candidate removed from list successfully",
+            //
+            //         })
+            // }
         }
         catch (e) {
             console.log(e)
@@ -364,7 +377,7 @@ export class MyListsService {
 
     async createInterview(res, user:BusinessOwner, body: { candidateId: any, date: string, time: string }) {
         try {
-            const businessOwner = await this.businessOwnerRepository.findOne({where: {id:user.id},relations:["myList","shortList","acceptedList","rejectedList"]})
+            const businessOwner = await this.businessOwnerRepository.findOne({where: {id:user.id},relations:["list"]})
             const candidate = await this.candidateRepository.findOne({where: {id:body.candidateId}})
             const interview = await this.interviewRepository.create({
                 candidate:candidate,
@@ -375,8 +388,7 @@ export class MyListsService {
                 candidateId:body.candidateId
             })
             await this.interviewRepository.save(interview)
-            const deleteFromShortList = await this.shortListRepository.delete({mondayId:body.candidateId})
-            const deleteFromMyList = await this.myListRepository.delete({mondayId:body.candidateId})
+            const deleteFromList = await this.listRepository.delete({mondayId:body.candidateId})
 
             this.eventEmitter.emit("createInterviewInMonday",{
                 boardId:1392724674,
@@ -416,11 +428,11 @@ export class MyListsService {
                 itemId:user.mondayId
             })
 
-            this.eventEmitter.once("IewaListFinished", async (data) => {
-                const iewaList = await this.iewaListRepository.find({where: {businessOwner: user}});
-
-                return res.status(200).json({status: 200, message: 'Iewa List retrieved successfully', data: iewaList});
-            })
+            // this.eventEmitter.once("IewaListFinished", async (data) => {
+            //     const iewaList = await this.iewaListRepository.find({where: {businessOwner: user}});
+            //
+            //     return res.status(200).json({status: 200, message: 'Iewa List retrieved successfully', data: iewaList});
+            // })
 
 
 
@@ -467,7 +479,7 @@ export class MyListsService {
 
 
 
-    async requestCandidateInfo(res, user: BusinessOwner, body: { candidateId: any }) {
+    async requestCandidateInfo(res, user: BusinessOwner, body) {
         try {
             const candidate = await this.candidateRepository.findOne({where: {id: body.candidateId}});
             if (!candidate) {
@@ -492,9 +504,9 @@ export class MyListsService {
             });
 
             this.eventEmitter.once("monday-changed-multiple-column-values", async (data) => {
-                const acceptedList = await this.acceptedListRepository.findOne({where: {mondayId: body.candidateId}});
-                acceptedList.isRequestedCandidateInfo = true;
-                await this.acceptedListRepository.save(acceptedList);
+                const list = await this.listRepository.findOne({where: {id: body.listId}});
+                list.isRequestedCandidateInfo = true;
+                await this.listRepository.save(list);
                 return res.status(200).json({
                     message: "Candidate info requested successfully",
                 });

@@ -175,7 +175,7 @@ export class BusinessOwnerController {
     async requestCandidateInfo(
         @Res() res,
         @CurrentAuthClientUser() user,
-        @Body() body: { candidateId: number }
+        @Body() body
     )
     {
         return this.myListsService.requestCandidateInfo(res, user, body);

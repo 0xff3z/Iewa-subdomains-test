@@ -69,7 +69,6 @@ export class MarketplaceController  {
     @ApiResponse({status: 401, description: 'Unauthorized'})
     @ApiResponse({status: 500, description: 'Internal server error'})
     async getCandidateExperience(@Res() res,  @Param("id") id): Promise<any>{
-        console.log(id);
         return this.marketplaceService.getCandidateExperience(res,  id);
     }
 

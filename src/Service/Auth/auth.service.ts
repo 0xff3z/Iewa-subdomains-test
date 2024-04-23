@@ -130,6 +130,7 @@ export class AuthService {
                 password: hashedPassword,
                 email: registerDto.email,
                 company_name: registerDto.company,
+                last_list_update: new Date()
 
             });
 

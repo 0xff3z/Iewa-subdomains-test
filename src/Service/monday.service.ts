@@ -19,7 +19,7 @@ export class MondayService {
     try {
 
       const columnValuesString = JSON.stringify(formValues).replace(/"/g, '\\"');
-      console.log(columnValuesString)
+      (columnValuesString)
 
       const mutation = `mutation {
                 create_item(
@@ -33,10 +33,10 @@ export class MondayService {
               }`;
 
       const res = await this.monday.api(mutation).then(res => res.data.create_item.id);
-      console.log(res)
+      (res)
 
       if (!isNaN(res)) {
-        console.log("ss");
+        ("ss");
         return res;
       }
 
@@ -66,10 +66,10 @@ export class MondayService {
               }`;
 
       const res = await this.monday.api(mutation).then(res => res.data.create_item.id);
-      console.log(res)
+      (res)
 
       if (!isNaN(res)) {
-        console.log("ss");
+        ("ss");
         return res;
       }
 
@@ -92,7 +92,7 @@ export class MondayService {
                   ${columnValuesString}
                 }
               }`;
-      console.log(query)
+      (query)
       return query
 
     }
@@ -118,7 +118,7 @@ export class MondayService {
             }`;
 
       const res = await this.monday.api(mutation).then(res => res.data.change_multiple_column_values.id);
-      console.log(`this is the response ${res}`)
+      (`this is the response ${res}`)
       return res;
     } catch (error) {
       console.error(error);
@@ -270,7 +270,7 @@ export class MondayService {
       `;
 
         const response = await this.monday.api(query);
-        console.log(response)
+        (response)
         const items = response.data.boards[0]?.items_page?.items || [];
 
 
@@ -348,16 +348,16 @@ export class MondayService {
 
       const queryres = await this.monday.api(query).then(res => res.data.items_page_by_column_values.items[0].column_values[0].value);
       const json = JSON.parse(queryres);
-      console.log(json);
+      (json);
       if (json.linkedPulseIds === null) {
         json.linkedPulseIds = [];
-        console.log(json.linkedPulseIds);
+        (json.linkedPulseIds);
       } else {
         const linkedPulseIds = json.linkedPulseIds && json.linkedPulseIds.map(item => item.linkedPulseId) || [];
         linkedPulseIds.push(item_id);
-        console.log(`before ${linkedPulseIds}`);
-        console.log(`item_id ${item_id}`);
-        console.log(`after ${linkedPulseIds}`);
+        (`before ${linkedPulseIds}`);
+        (`item_id ${item_id}`);
+        (`after ${linkedPulseIds}`);
 
         var updateQuery = `mutation {
       change_multiple_column_values(
@@ -369,7 +369,7 @@ export class MondayService {
       }
     }`;
         const response = await this.monday.api(updateQuery).then(res => res.data.change_multiple_column_values.id);
-        console.log(response);
+        (response);
 
 
       }
@@ -392,40 +392,6 @@ export class MondayService {
 
   }
 
-  async removeInConnctedBoards(item_id, board_id, column_id, column_value, column_you_update, res, company_id) {
-    try {
-      console.log(item_id, board_id, column_id, column_value, column_you_update)
-      const query = `query {
-      items_page_by_column_values(
-        board_id: ${board_id}, 
-        columns:[{column_id: "${column_id}", column_values: "${column_value}"}],
-      ) {
-        items {
-          
-          name
-          column_values(ids: ["${column_you_update}"]) {
-            text
-            value
-          }
-        }
-      }
-    }`;
-
-      const queryres = await this.monday.api(query).then(res => res.data.items_page_by_column_values.items[0].column_values[0].value);
-      const json = JSON.parse(queryres);
-      const linkedPulseIds = json.linkedPulseIds.map(item => item.linkedPulseId);
-      const newLinkedPulseIds = [...linkedPulseIds];
-      newLinkedPulseIds.splice(linkedPulseIds.indexOf(column_value), 1);
-      console.log(`after ${newLinkedPulseIds}`);
-
-
-
-
-      // const json = JSON.parse(queryres);
-      // console.log(json.linkedPulseIds);
-      //
-      // const ids = json.map(item => item.linkedPulseId); // Use json instead of queryres
-      // console.log(ids);
 
 
 
@@ -434,126 +400,13 @@ export class MondayService {
 
 
 
-      var updateQuery = `mutation {
-      change_multiple_column_values(
-        item_id: ${company_id},
-        board_id: ${board_id},
-        column_values: "{\\"${column_you_update}\\": {\\"item_ids\\": [${newLinkedPulseIds.join(", ")}]}}"
-      ) {
-        id
-      }
-    }`;
-      const response = await this.monday.api(updateQuery).then(res => res.data.change_multiple_column_values.id);
-      console.log(response);
-      return response
-    }
-    catch (error) {
-      console.error(error);
-    }
-
-  }
 
 
 
 
-
-
-
-  async queryByColumnValueAndGetLinkedItemsInboard(board_id, column_id, column_value) {
-    const query = `query {
-  boards (ids: [${board_id}]) {
-    items_page (query_params: {rules: [{column_id: "${column_id}", compare_value: ["${column_value}"], operator:contains_text}]}) {
-      items {
-        id
-        name
-        
-        column_values {
-          ...on BoardRelationValue {
-            LinkedItems: linked_items {
-              name
-              id
-              column_values {
-                id
-                value
-                ... on StatusValue {
-                  text
-                }
-                ... on TextValue {
-                  text
-                }
-                ... on DropdownValue  {
-                    text
-                }
-                ... on DateValue {
-                    date
-                }
-                
-                
-                ... on FileValue {
-                    files
-                    id
-                    
-                }
-                
-         
-              }
-              
-            }
-            
-          }
-        }
-      }
-    }
-  }
-}`;
-    const res = await this.monday.api(query).then(res => res.data.boards[0].items_page.items);
-    return res;
-
-
-  }
-
-
-  async createJobInterview(form, candidate_id, company_id) {
-    try {
-      const interviewId = await this.create_item("1392724674", "topics", form, "Job Interview")
-      var updateCandidate = `mutation {
-      change_multiple_column_values(
-        item_id: ${interviewId},
-        board_id: 1392724674,
-        column_values: "{\\"connect_boards\\": {\\"item_ids\\": [${candidate_id}]}}"
-      ) {
-        id
-      }
-    }`;
-      var updatedClient = `mutation {
-      change_multiple_column_values(
-        item_id: ${interviewId},
-        board_id: 1392724674,
-        column_values: "{\\"connect_boards3\\": {\\"item_ids\\": [${company_id}]}}"
-      ) {
-        id
-      }
-    }`;
-      if (interviewId) {
-        const responseCandidate = await this.monday.api(updateCandidate).then(res => res.data.change_multiple_column_values.id);
-        if (responseCandidate) {
-
-          const responseClient = await this.monday.api(updatedClient).then(res => res.data.change_multiple_column_values.id);
-          return interviewId
-        }
-
-
-
-      }
-
-    } catch (error) {
-      console.log(error)
-    }
-
-  }
 
   async GenerateAssetURl(asset_id) {
-    console.log(asset_id)
+    (asset_id)
     const query = `query {
       assets (ids: [${asset_id}]) {
         id
@@ -592,12 +445,8 @@ export class MondayService {
 
 
 
-  async readItemUpdates(item_id) {
-    let query = `query { updates(ids:[${item_id}]) { id item_id body } }`;
-    const response = await this.monday.api(query).then(res => res.data.updates);
-    console.log(response);
-    return response
-  }
+
+
 
 
 
@@ -605,7 +454,7 @@ export class MondayService {
 
   async createMarketplaceObject(object) {
     if (object.length == 0) {
-      console.log("no items");
+      ("no items");
     }
     const marketObjects = await Promise.all(object.map(async (item) => {
       const marketObj = {
@@ -643,7 +492,7 @@ export class MondayService {
   }
   async createMarketplaceObjectNew(object) {
     if (object.length == 0) {
-      console.log("no items");
+      ("no items");
     }
     const marketObjects = await Promise.all(object.map(async (item) => {
       const marketObj = {
@@ -676,7 +525,7 @@ export class MondayService {
 
   async createTrainingObject(object) {
     if (object.length == 0) {
-      console.log("no items");
+      ("no items");
     }
     const trainneObject = await Promise.all(object.map(async (item) => {
       const traineeObj = {
@@ -771,59 +620,11 @@ export class MondayService {
     }
   }
 
-  async createInvterviewObject(object) {
-
-    try {
-      const jobInterview = await Promise.all(object.map(async (item) => {
-
-        const candidate_id = await this.findItemsByid(item.column_values, "connect_boards", "connect_board")
-        console.log(candidate_id)
-        const queryCandidate = await this.queryByItemId(candidate_id)
-
-        const createdMarketObj = await this.createMarketplaceObject([queryCandidate])
-        const jobInterviewObj = {
-          name: item.name,
-          id: item.id,
-          date: this.findItemsByid(item.column_values, "date_1", "date"),
-          hour: JSON.parse(this.findItemsByid(item.column_values, "hour", "hour")),
-          status: this.findItemsByid(item.column_values, "status", "status"),
-          candidate: createdMarketObj
 
 
 
-        };
-        return jobInterviewObj;
-      }));
-      return jobInterview
-    } catch (error) {
-      console.log(error)
-    }
-
-  }
 
 
-
-  async sendMondayRequest(query) {
-    try {
-      const request = await fetch('https://api.monday.com/v2', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjI1NjI2ODAwNSwiYWFpIjoxMSwidWlkIjo0MzIxMDQyOSwiaWFkIjoiMjAyMy0wNS0xM1QxODowODoxNC4wMDBaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MTY4OTUwMDAsInJnbiI6ImV1YzEifQ.gvAyLNijyDdaGYoDJTPltn-Po-OyWivKS4IC6Ijmnp8`
-
-        },
-        body: JSON.stringify(query)
-      })
-      const response = await request.json()
-      if (response.ok) {
-        return response
-
-      }
-
-    } catch (error) {
-
-    }
-  }
 
 
   async createCandidateExperienceObject(object) {

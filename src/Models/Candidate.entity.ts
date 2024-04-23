@@ -9,11 +9,8 @@ import {
   OneToMany
 } from "typeorm";
 import {ApiProperty} from "@nestjs/swagger";
-import {MyList} from "./MyList.entity";
-import {ShortList} from "./ShortList.entity";
-import {RejectedList} from "./RejectedList.entity";
 import {Interview} from "./Interview.entity";
-import {IewaList} from "./IewaList.entity";
+import {List} from "./List.entity";
 
 export enum CandidateType {
   marketPlace = 'marketPlace',
@@ -135,16 +132,13 @@ export class Candidate {
   @ApiProperty()
   projectThree: string;
 
-  @OneToMany(type => MyList, myList => myList.candidate)
-    myList: MyList[];
-  @OneToMany(type => ShortList, shortList => shortList.candidate)
-    shortList: ShortList[];
-  @OneToMany(type => RejectedList, rejectedList => rejectedList.candidate)
-    rejectedList: RejectedList[];
+
   @OneToMany(type => Interview, interview => interview.candidate)
     interview: Interview[];
-  @OneToMany(type => IewaList, iewaList => iewaList.candidate)
-    iewaList: IewaList[];
+
+  @OneToMany(type => List, list => list.candidate)
+    list: List[];
+
   @Column({ nullable: true, type: 'enum', enum: CandidateType, default: CandidateType.marketPlace })
     @ApiProperty()
   type: string;

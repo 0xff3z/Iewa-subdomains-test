@@ -4,8 +4,8 @@ import { Repository } from 'typeorm';
 import {Candidate} from "../Models/Candidate.entity";
 import {EventEmitter2} from "@nestjs/event-emitter";
 import {BusinessOwner} from "../Models/BusinessOwner";
-import {MyList} from "../Models/MyList.entity";
 import {MondayService} from "./monday.service";
+import {List} from "../Models/List.entity";
 
 
 @Injectable()
@@ -13,7 +13,7 @@ export class MarketplaceService  {
     constructor(
         @InjectRepository(Candidate) private candidateRepository: Repository<Candidate>,
         @InjectRepository(BusinessOwner) private businessOwnerRepository: Repository<BusinessOwner>,
-        @InjectRepository(MyList) private myListRepository: Repository<MyList>,
+        @InjectRepository(List) private myListRepository: Repository<List>,
         private eventEmitter: EventEmitter2,
         private mondayService: MondayService
     ) { }
@@ -56,24 +56,24 @@ export class MarketplaceService  {
 
     async addMyList(res, user:BusinessOwner, body) {
         try {
-            const exist = await this.myListRepository.findOne({where: {mondayId: body.id}})
-            if (exist) {
-                return res.status(400).json({status:400, message: 'The Candidate is Already Added'});
-            }
+            // const exist = await this.myListRepository.findOne({where: {mondayId: body.id}})
+            // if (exist) {
+            //     return res.status(400).json({status:400, message: 'The Candidate is Already Added'});
+            // }
             const event = this.eventEmitter.emit("addToListInMonday",{
                 connectedBoard: "connect_boards19",
                 boardId: 1399424616,
                 userMondayId: user.mondayId,
                 candidateMondayId: body.id
             })
-            const myList = await this.myListRepository.create({
-                mondayId: body.id,
-                businessOwner: user,
-                candidate: body.id,
-                presentBy:body.presentBy
-
-            })
-            await this.myListRepository.save(myList)
+            // const myList = await this.myListRepository.create({
+            //     mondayId: body.id,
+            //     businessOwner: user,
+            //     candidate: body.id,
+            //     presentBy:body.presentBy
+            //
+            // })
+            // await this.myListRepository.save(myList)
             return res.status(200).json({status:200, message: 'The Candidate is Added Successfully', data: event});
 
         } catch (e) {
@@ -85,18 +85,18 @@ export class MarketplaceService  {
 
     async removeMyList(res, user:BusinessOwner, id) {
         try {
-            const exist = await this.myListRepository.findOne({where: {mondayId: id.id}})
-            if (!exist) {
-                return res.status(400).json({status:400, message: 'The Candidate is Not Added'});
-            }
-            const event = this.eventEmitter.emit("removeFromListInMonday",{
-                connectedBoard: "connect_boards19",
-                boardId: 1399424616,
-                userMondayId: user.mondayId,
-                candidateMondayId: id.id
-            })
-            await this.myListRepository.delete({mondayId: id.id})
-            return res.status(200).json({status:200, message: 'The Candidate is Removed Successfully', data: event});
+            // const exist = await this.myListRepository.findOne({where: {mondayId: id.id}})
+            // if (!exist) {
+            //     return res.status(400).json({status:400, message: 'The Candidate is Not Added'});
+            // }
+            // const event = this.eventEmitter.emit("removeFromListInMonday",{
+            //     connectedBoard: "connect_boards19",
+            //     boardId: 1399424616,
+            //     userMondayId: user.mondayId,
+            //     candidateMondayId: id.id
+            // })
+            // await this.myListRepository.delete({mondayId: id.id})
+            // return res.status(200).json({status:200, message: 'The Candidate is Removed Successfully', data: event});
 
         } catch (e) {
             console.log(e);
@@ -106,8 +106,9 @@ export class MarketplaceService  {
 
     async getMyList(res, user:BusinessOwner) {
         try {
-            const myList = await this.myListRepository.find({where: {businessOwner: user}, relations: ['candidate']});
-            return res.status(200).json({status:200, message: 'My List retrieved successfully', data: myList});
+            const list = await this.businessOwnerRepository.findOne({where: {mondayId: user.mondayId}, relations: ['list', 'list.candidate']});
+
+            return res.status(200).json({status:200, message: 'My List retrieved successfully', data: list.list});
         } catch (e) {
             console.log(e);
             return res.status(500).json({message: 'Internal server error'});

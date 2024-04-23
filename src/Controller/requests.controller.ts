@@ -32,7 +32,6 @@ export class RequestsController {
             return this.requestsService.getRequests(businessOwner,res)
         }
         catch (error) {
-            console.log(error)
             return res.json({status: 500, data: error})
         }
     }
@@ -79,7 +78,6 @@ export class RequestsController {
 
         }
         catch (error) {
-            console.log(error)
             return res.json({status: 500, data: error})
         }
     }
@@ -102,7 +100,6 @@ export class RequestsController {
             return this.requestsService.rejectRequest(body, businessOwner,res)
         }
         catch (error) {
-            console.log(error)
             return res.json({status: 500, data: error})
         }
     }
