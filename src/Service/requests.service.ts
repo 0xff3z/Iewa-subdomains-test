@@ -42,35 +42,31 @@ export class RequestsService {
                 }
 
             })
+            const candidateRequest = await this.candidateRequestRepository.create({
+                additionalNotes: body.additionalNotes,
+                technicalSkills: body.requiredSkills,
+                experienceLevel: body.experienceLevel,
+                numberOfEmployees: 1,
+                jobResponsibilities: body.jobResponsibilities,
+                jobRequirementsExperiences: body.jobRequirementsExperinces,
+                jobTitle: body.jobTitle,
+                skills: body.requiredSkills,
+                workingDays: body.workHours,
+                whenToStart: body.whenToStart,
+                employmentType: body.jobType,
+                englishLevel: body.englishLevel,
+                salaryCap: body.maxSalary,
+                businessOwner:businessOwner,
+                status:"pending"
+            });
 
-            this.eventEmitter.once("monday-created-item", async (data) => {
-                const existing = await this.candidateRequestRepository.findOne({ where: { mondayId: data } });
-                if (existing) {
-                    return res.status(200).json({status: 200, data: "Request already exists"})
-                }
-                const candidateRequest = await this.candidateRequestRepository.create({
-                    additionalNotes: body.additionalNotes,
-                    technicalSkills: body.requiredSkills,
-                    experienceLevel: body.experienceLevel,
-                    numberOfEmployees: 1,
-                    jobResponsibilities: body.jobResponsibilities,
-                    jobRequirementsExperiences: body.jobRequirementsExperinces,
-                    jobTitle: body.jobTitle,
-                    skills: body.requiredSkills,
-                    workingDays: body.workHours,
-                    whenToStart: body.whenToStart,
-                    employmentType: body.jobType,
-                    englishLevel: body.englishLevel,
-                    salaryCap: body.maxSalary,
-                    businessOwner:businessOwner,
-                    mondayId: data,
-                    status:"pending"
-                });
+            await this.candidateRequestRepository.save(candidateRequest);
+            return res.status(200).json({status: 200, data: "Request added successfully"})
 
-                await this.candidateRequestRepository.save(candidateRequest);
-                return res.status(200).json({status: 200, data: "Request added successfully"})
-
-            })
+            // this.eventEmitter.once("monday-created-item", async (data) => {
+            //
+            //
+            // })
         }
         catch (error) {
             console.log(error)
