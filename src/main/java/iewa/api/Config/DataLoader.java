@@ -18,8 +18,8 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-//        this.monday.createCandidates();
-//        this.monday.getAllTrainees();
+        this.monday.createCandidates();
+        this.monday.getAllTrainees();
 
 
     }
