@@ -1,26 +1,5 @@
-FROM node:lts AS development
-
-WORKDIR /app/iewa
-
-COPY package*.json ./
-
-RUN npm install
-
-COPY . .
-
-CMD ["npm", "run", "start:dev"]
-
-FROM node:lts AS production
-
-WORKDIR /usr/src/iewa
-
-COPY package*.json ./
-
-RUN npm install
-
-COPY . .
-
-RUN npm run build
-
-CMD [ "node", "dist/main.js" ]
-
+FROM openjdk:23-jdk
+ARG JAR_FILE=target/*.jar
+EXPOSE 8080
+ADD target/api-iewa.jar api-iewa.jar
+ENTRYPOINT ["java", "-jar", "/api-iewa.jar"]
