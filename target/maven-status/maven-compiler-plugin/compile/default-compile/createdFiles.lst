@@ -12,6 +12,7 @@ iewa/api/Model/UserList$Type.class
 iewa/api/DTO/BusinessOwner/CreateInterviewDTO.class
 iewa/api/Repository/InvoiceRepository.class
 iewa/api/DTO/BusinessOwner/RequestCandidateDTO.class
+iewa/api/Config/RedisConfig.class
 iewa/api/Controller/TraineeController.class
 iewa/api/Config/ApiResponseDTO.class
 iewa/api/Config/RabbitMQListener.class
