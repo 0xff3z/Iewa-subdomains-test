@@ -20,6 +20,7 @@ iewa/api/Service/TraineeService.class
 iewa/api/IewaApiApplication.class
 iewa/api/Service/BusinessOwner/InvoiceService.class
 iewa/api/Config/MondayConfig.class
+iewa/api/Service/Dataload.class
 iewa/api/Model/UserList.class
 iewa/api/DTO/BusinessOwner/LoginBusinessOwnerDTO.class
 iewa/api/Config/JwtAuthenticationFilter.class
