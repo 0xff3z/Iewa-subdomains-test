@@ -44,15 +44,12 @@ services:
     image: 'redis:latest'
     ports:
       - '6379:6379'
-
     networks:
         - iewa_network
     environment:
         - REDIS_PASSWORD=iewa-test
         - REDIS_PORT=6379
         - REDIS_HOST=redis
-        -
-
   rabbitmq:
     image: 'rabbitmq:management'
     environment:
