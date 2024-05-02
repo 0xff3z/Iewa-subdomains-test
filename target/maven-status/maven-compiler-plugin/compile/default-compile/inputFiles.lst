@@ -3,9 +3,13 @@
 /Users/0xff3z/Desktop/MyProjects/iewa-api-spring/src/main/java/iewa/api/IewaApiApplication.java
 /Users/0xff3z/Desktop/MyProjects/iewa-api-spring/src/main/java/iewa/api/Model/UserList.java
 /Users/0xff3z/Desktop/MyProjects/iewa-api-spring/src/main/java/iewa/api/Model/Invoice.java
+/Users/0xff3z/Desktop/MyProjects/iewa-api-spring/src/main/java/iewa/api/Controller/PublicController.java
 /Users/0xff3z/Desktop/MyProjects/iewa-api-spring/src/main/java/iewa/api/Service/BusinessOwner/CandidateRequestService.java
+/Users/0xff3z/Desktop/MyProjects/iewa-api-spring/src/main/java/iewa/api/Repository/LandingPageCandidateRepository.java
+/Users/0xff3z/Desktop/MyProjects/iewa-api-spring/src/main/java/iewa/api/Service/PublicService.java
 /Users/0xff3z/Desktop/MyProjects/iewa-api-spring/src/main/java/iewa/api/Repository/TraineeRepository.java
 /Users/0xff3z/Desktop/MyProjects/iewa-api-spring/src/main/java/iewa/api/Controller/BusinessOwner/InvoiceController.java
+/Users/0xff3z/Desktop/MyProjects/iewa-api-spring/src/main/java/iewa/api/Model/LandingPageCandidate.java
 /Users/0xff3z/Desktop/MyProjects/iewa-api-spring/src/main/java/iewa/api/Config/ApiResponseDTO.java
 /Users/0xff3z/Desktop/MyProjects/iewa-api-spring/src/main/java/iewa/api/Controller/BusinessOwner/CandidateRequestController.java
 /Users/0xff3z/Desktop/MyProjects/iewa-api-spring/src/main/java/iewa/api/DTO/BusinessOwner/InterviewDTO.java

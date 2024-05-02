@@ -1,3 +1,4 @@
+iewa/api/Controller/PublicController.class
 iewa/api/Service/BusinessOwner/CandidateRequestService.class
 iewa/api/DTO/Trainee/RegisterTraineeDTO.class
 iewa/api/Model/Interview$Status.class
@@ -13,6 +14,7 @@ iewa/api/DTO/BusinessOwner/CreateInterviewDTO.class
 iewa/api/Repository/InvoiceRepository.class
 iewa/api/DTO/BusinessOwner/RequestCandidateDTO.class
 iewa/api/Config/RedisConfig.class
+iewa/api/Repository/LandingPageCandidateRepository.class
 iewa/api/Controller/TraineeController.class
 iewa/api/Config/ApiResponseDTO.class
 iewa/api/Config/RabbitMQListener.class
@@ -45,12 +47,14 @@ iewa/api/Config/JwtUtil.class
 iewa/api/Repository/CandidateRepository.class
 iewa/api/Model/Candidate$CandidateBuilder.class
 iewa/api/Controller/BusinessOwner/BusinessOwnerController.class
+iewa/api/Service/PublicService.class
 iewa/api/Config/DataLoader.class
 iewa/api/Controller/BusinessOwner/CDNController.class
 iewa/api/Controller/BusinessOwner/JobInterviewController.class
 iewa/api/Model/Invoice.class
 iewa/api/Model/CandidateRequest$CandidateRequestBuilder.class
 iewa/api/Service/UserService.class
+iewa/api/Model/LandingPageCandidate.class
 iewa/api/DTO/BusinessOwner/RegisterBusinessOwnerDTO.class
 iewa/api/DTO/Camp/RegisterCampDTO.class
 iewa/api/Controller/BusinessOwner/InvoiceController.class
