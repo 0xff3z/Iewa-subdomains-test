@@ -47,33 +47,25 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-
-
                 .authorizeHttpRequests()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                 .requestMatchers("/auth/register/**").permitAll()
                 .requestMatchers("/auth/login/**").permitAll()
                 .requestMatchers("/trainee/**").permitAll()
                 .requestMatchers("/camp/**").permitAll()
+                .requestMatchers("/public/**").permitAll()
                 .requestMatchers("/business-owner/**").hasAnyRole(BUSINESS_OWNER.name())
-                .requestMatchers(HttpMethod.GET,"/business-owner/**").hasAnyAuthority(BUSINESS_OWNER_READ.name())
-                .requestMatchers(HttpMethod.POST,"business-owner/**").hasAnyAuthority(BUSINESS_OWNER_WRITE.name())
-                .requestMatchers(HttpMethod.PUT,"/business-owner/**").hasAnyAuthority(BUSINESS_OWNER_UPDATE.name())
-                .requestMatchers(HttpMethod.DELETE,"/business-owner/**").hasAnyAuthority(BUSINESS_OWNER_DELETE.name())
+                .requestMatchers(HttpMethod.GET, "/business-owner/**").hasAnyAuthority(BUSINESS_OWNER_READ.name())
+                .requestMatchers(HttpMethod.POST, "/business-owner/**").hasAnyAuthority(BUSINESS_OWNER_WRITE.name())
+                .requestMatchers(HttpMethod.PUT, "/business-owner/**").hasAnyAuthority(BUSINESS_OWNER_UPDATE.name())
+                .requestMatchers(HttpMethod.DELETE, "/business-owner/**").hasAnyAuthority(BUSINESS_OWNER_DELETE.name())
+                .anyRequest().authenticated()
                 .and()
                 .cors(Customizer.withDefaults())
                 .csrf().disable()
-
-                .authorizeHttpRequests()
-
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
-                .anyRequest().authenticated()
-                .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-
-
                 .and()
                 .addFilterBefore(jwtRequestFilter(), UsernamePasswordAuthenticationFilter.class);
-
 
         return http.build();
     }

@@ -5,6 +5,7 @@ import iewa.api.DTO.Trainee.RegisterTraineeDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +22,7 @@ public class TraineeService {
             Map<String, String> columnValues = new HashMap<>();
             columnValues.put("status6", registerTraineeDTO.getSex());
             columnValues.put("phone", registerTraineeDTO.getPhoneNumber());
-            columnValues.put("email", registerTraineeDTO.getEmail());
+            columnValues.put("email", registerTraineeDTO.getEmail() + " " + registerTraineeDTO.getEmail());
             columnValues.put("long_text", registerTraineeDTO.getAboutMe());
             columnValues.put("status5", registerTraineeDTO.getSearchingFor());
             columnValues.put("numbers", String.valueOf(registerTraineeDTO.getSalary()));
@@ -33,7 +34,19 @@ public class TraineeService {
             columnValues.put("status98", registerTraineeDTO.getEnglishLevel());
             columnValues.put("status9", registerTraineeDTO.getHowToWork());
             columnValues.put("status3", registerTraineeDTO.getCollege());
-            this.monday.createItem(1392728485, registerTraineeDTO.getFirstName() + " " + registerTraineeDTO.getLastName(), "topics", columnValues);
+            String itemId = this.monday.createItem(1392728485, registerTraineeDTO.getFirstName() + " " + registerTraineeDTO.getLastName(), "topics", columnValues);
+
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Success", itemId,201));
+        }
+        catch (Exception e){
+            return ResponseEntity.badRequest().body("Error");
+        }
+    }
+
+
+    public ResponseEntity<?> uploadFile(MultipartFile file, String id){
+        try {
+            this.monday.upload(file,  id);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Success", null,200));
         }
         catch (Exception e){

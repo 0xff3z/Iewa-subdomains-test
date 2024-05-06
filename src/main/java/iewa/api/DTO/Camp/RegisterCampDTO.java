@@ -5,42 +5,23 @@ import lombok.Data;
 
 @Data
 public class RegisterCampDTO {
-    private String Question1;
-
-    private String Q2;
-
-    private String Q3;
-
-    private String Q4;
-
-    private String Q5;
-
-    private String Q6;
-
-    private String Q7;
-
-    private String Q8;
-
-    private String Q9;
-
-    private String Q10;
-
-    private String Q11;
+    private String question1;
+    private String q2;
+    private String q3;
+    private String q4;
+    private String q5;
+    private String q6;
+    private String q7;
+    private String q8;
+    private String q9;
+    private String q10;
+    private String q11;
     private String firstName;
-
     private String lastName;
-
     private String email;
-
     private String city;
-
     private String phoneNumber;
-
     private String university;
-
     private int age;
-
     private String graduated;
-
-
 }

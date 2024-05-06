@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.shaded.gson.Gson;
 import com.nimbusds.jose.shaded.gson.JsonArray;
 import com.nimbusds.jose.shaded.gson.JsonObject;
+import com.nimbusds.jose.shaded.gson.JsonParser;
 import iewa.api.Config.MondayConfig;
 import iewa.api.Model.*;
 import iewa.api.Repository.*;
@@ -16,9 +17,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -45,6 +51,9 @@ public class Monday {
 
     @Autowired
     private TraineeRepository traineeRepository;
+
+    @Autowired
+    private LandingPageCandidateRepository landingPageCandidateRepository;
 
 
 
@@ -424,6 +433,192 @@ public class Monday {
             System.out.println("Error: " + e.getMessage());
         }
     }
+    public void createLandingPageCandidates() {
+        try {
+            String cursor = null;
+            do {
+                String query = "query { boards(ids: [1445511186]) { groups(ids: [\"topics\"]) { items_page(" +
+                        (cursor != null ? "cursor: \"" + cursor + "\", limit: 500" : "limit: 500, query_params: { order_by: [{ column_id: \"name\" }] }") +
+                        ") { cursor items { name id column_values { id value ... on StatusValue { text } ... on DropdownValue { text } } } } } } }";
+
+                String url = "https://api.monday.com/v2";
+                RestTemplate restTemplate = new RestTemplate();
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("Authorization", this.mondayConfig.getToken());
+                Map<String, Object> body = new HashMap<>();
+                body.put("query", query);
+                HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+                String response = restTemplate.postForObject(url, request, String.class);
+
+                JSONObject responseData = new JSONObject(response);
+                JSONObject itemsPage = responseData.getJSONObject("data").getJSONArray("boards").getJSONObject(0).getJSONArray("groups").getJSONObject(0).getJSONObject("items_page");
+                cursor = itemsPage.optString("cursor");
+
+                JSONArray itemsArray = itemsPage.getJSONArray("items");
+
+                log.info("Items: " + itemsArray.length());
+                for (int i = 0; i < itemsArray.length(); i++) {
+                    Candidate existingCandidate = candidateRepository.findByMondayId(itemsArray.getJSONObject(i).getString("id"));
+                    if (existingCandidate != null) {
+                        continue;
+                    }
+                    JSONObject item = itemsArray.getJSONObject(i);
+                    LandingPageCandidate candidate = new LandingPageCandidate();
+
+                    candidate.setName(item.getString("name"));
+
+                    JSONArray columnValues = item.getJSONArray("column_values");
+                    for (int j = 0; j < columnValues.length(); j++) {
+                        JSONObject column = columnValues.getJSONObject(j);
+                        String id = column.getString("id");
+                        String value = column.optString("value", null);
+                        candidate.setMondayId(item.getString("id"));
+
+                        switch (id) {
+                            case "phone__1":
+                                if (value == null || value.equals("null") || JSONObject.NULL.equals(value)) {
+                                    break;
+                                }
+                                candidate.setFirstName(new JSONObject(value).optString("phone"));
+                                break;
+                            case "position":
+                                if (value == null || value.equals("null") || JSONObject.NULL.equals(value)) {
+                                    break;
+                                }
+                                candidate.setJob(value.replace("\"", ""));
+                                break;
+                            case "long_text":
+                                if (value != null && !value.equals("null")) {
+                                    JSONObject longTextObj = new JSONObject(value);
+                                    if (longTextObj.has("text")) {
+                                        candidate.setBio(longTextObj.getString("text"));
+                                    }
+                                }
+                                break;
+                            case "long_text2":
+                                if (value != null && !value.equals("null")) {
+                                    JSONObject longText2Obj = new JSONObject(value);
+                                    if (longText2Obj.has("text")) {
+                                        candidate.setYearsOfExperience(longText2Obj.getString("text"));
+                                    }
+                                }
+                                break;
+                            case "long_text6":
+                                if (value != null && !value.equals("null")) {
+                                    JSONObject longText6Obj = new JSONObject(value);
+                                    if (longText6Obj.has("text")) {
+                                        candidate.setYearsOfExperienceTwo(longText6Obj.getString("text"));
+                                    }
+                                }
+                                break;
+                            case "long_text0":
+                                if (value != null && !value.equals("null")) {
+                                    JSONObject longText0Obj = new JSONObject(value);
+                                    if (longText0Obj.has("text")) {
+                                        candidate.setYearsOfExperienceThree(longText0Obj.getString("text"));
+                                    }
+                                }
+                                break;
+                            case "long_text66":
+                                if (value != null && !value.equals("null")) {
+                                    JSONObject longText66Obj = new JSONObject(value);
+                                    if (longText66Obj.has("text")) {
+                                        candidate.setYearsOfExperienceFour(longText66Obj.getString("text"));
+                                    }
+                                }
+                                break;
+                            case "status6":
+
+                                candidate.setCurrency(column.optString("text"));
+                                break;
+                            case "long_text5":
+                                if (value != null && !value.equals("null")) {
+                                    JSONObject longText5Obj = new JSONObject(value);
+                                    if (longText5Obj.has("text")) {
+                                        candidate.setEducation(longText5Obj.getString("text"));
+                                    }
+                                }
+                                break;
+                            case "numbers4":
+                                if (value == null || value.equals("null") || JSONObject.NULL.equals(value)) {
+                                    break;
+                                }
+                                candidate.setExpectedSalary(value.replace("\"", ""));
+                                break;
+                            case "status7":
+                                candidate.setNationality(column.optString("text"));
+                                break;
+                            case "long_text9":
+                                if (value != null && !value.equals("null")) {
+                                    JSONObject longText9Obj = new JSONObject(value);
+                                    if (longText9Obj.has("text")) {
+                                        candidate.setCourses(longText9Obj.getString("text"));
+                                    }
+                                }
+                                break;
+                            case "long_text7":
+                                if (value != null && !value.equals("null")) {
+                                    JSONObject longText7Obj = new JSONObject(value);
+                                    if (longText7Obj.has("text")) {
+                                        candidate.setSkills(longText7Obj.getString("text"));
+                                    }
+                                }
+                                break;
+                            case "long_text4":
+                                if (value != null && !value.equals("null")) {
+                                    JSONObject longText4Obj = new JSONObject(value);
+                                    if (longText4Obj.has("text")) {
+                                        candidate.setProject(longText4Obj.getString("text"));
+                                    }
+                                }
+                                break;
+                            case "long_text45":
+                                if (value != null && !value.equals("null")) {
+                                    JSONObject longText45Obj = new JSONObject(value);
+                                    if (longText45Obj.has("text")) {
+                                        candidate.setProjectTwo(longText45Obj.getString("text"));
+                                    }
+                                }
+                                break;
+                            case "long_text60":
+                                if (value != null && !value.equals("null")) {
+                                    JSONObject longText60Obj = new JSONObject(value);
+                                    if (longText60Obj.has("text")) {
+                                        candidate.setProjectThree(longText60Obj.getString("text"));
+                                    }
+                                }
+                                break;
+                            case "numbers1":
+                                if (value == null || value.equals("null") || JSONObject.NULL.equals(value)) {
+                                    break;
+                                }
+                                candidate.setNp(value.replace("\"", ""));
+                                break;
+                        }
+                    }
+
+
+
+
+                    landingPageCandidateRepository.save(candidate);
+                }
+
+
+
+
+            } while (cursor != null && !cursor.isEmpty());
+
+
+
+
+
+
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
 
 
     public String createCandidateRequest(Map<String, String> columnValues, String businessOwnerId) {
@@ -463,12 +658,12 @@ public class Monday {
     public String RequestCandidateInfo(String businessOwnerId,String candidateId,String candidateName) {
         try {
             JSONObject json = new JSONObject();
-            json.put("connect_boards__1", new JSONObject().put("item_ids", new JSONArray().put(businessOwnerId)));
-            json.put("connect_boards7__1", new JSONObject().put("item_ids", new JSONArray().put(candidateId)));
+            json.put("connect_boards2", new JSONObject().put("item_ids", new JSONArray().put(businessOwnerId)));
+            json.put("connect_boards__1", new JSONObject().put("item_ids", new JSONArray().put(candidateId)));
 
             String columnValuesString = json.toString().replace("\"", "\\\"");
             String mutation = String.format("mutation { create_item( board_id: %d, group_id: \"%s\", item_name: \"%s\", column_values: \"%s\" ) { id } }",
-                    1474304612, "topics", candidateName, columnValuesString);
+                    1484977551, "new_group97015", candidateName, columnValuesString);
             log.info(mutation);
             String url = "https://api.monday.com/v2";
 
@@ -832,12 +1027,35 @@ public class Monday {
                     JSONObject column = columnValues.getJSONObject(j);
                     String id = column.getString("id");
                     String value = column.optString("value", null);
+
+
+//                    log.info("Hour: " + column);
                     switch (id) {
                         case "status":
                             interview.setStatus(Interview.Status.fromString(column.optString("text")));
                             break;
                         case "dup__of_status":
                             interview.setAcceptionStatus(Interview.AcceptionStatus.fromString(column.optString("text")));
+                            break;
+                        case "date_1":
+                            if (value != null && !value.equals("null")) {
+                                JSONObject dateObj = new JSONObject(value);
+                                log.info("Date: " + dateObj);
+                                if (dateObj.has("date")) {
+                                    String dateValue = dateObj.getString("date");
+                                    log.info("Date: " + dateValue);
+                                    interview.setInterviewDate(dateValue);
+                                }
+                            }
+                            break;
+                        case "hour":
+                            if (value != null && !value.equals("null")) {
+                                JSONObject hourObj = new JSONObject(value);
+                                String hour = hourObj.optString("hour");
+                                if (hourObj.has("hour")) {
+                                    interview.setInterviewTime(hour);
+                                }
+                            }
                             break;
 
                     }
@@ -846,6 +1064,40 @@ public class Monday {
             }
         } catch (Exception e) {
             log.error(e.getMessage());
+        }
+    }
+
+
+    public String upload(MultipartFile file, String itemId) {
+        try {
+            log.info("itemId: " + itemId);
+            log.info("File: " + file);
+            String url = "https://api.monday.com/v2/file";
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.set("Authorization", this.mondayConfig.getToken());
+
+            // Prepare body
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("query", "mutation ($file: File!) { add_file_to_column (item_id: " + itemId + ", column_id: \"file\", file: $file) { id } }"); // Corrected mutation
+
+            // Convert file to a resource
+            Resource resource = new ByteArrayResource(file.getBytes()) {
+                @Override
+                public String getFilename() {
+                    return file.getOriginalFilename();
+                }
+            };
+            body.add("variables[file]", resource); // Corrected file handling
+
+            // Send request
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
+            log.info(response);
+            return "File uploaded successfully";
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
         }
     }
 

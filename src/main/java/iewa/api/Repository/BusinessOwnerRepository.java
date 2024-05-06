@@ -9,6 +9,8 @@ public interface BusinessOwnerRepository extends JpaRepository<BusinessOwner, Lo
 
     BusinessOwner findByMondayId(String mondayId);
 
+    BusinessOwner findByPhoneNumber(String phoneNumber);
+
 
 }
 

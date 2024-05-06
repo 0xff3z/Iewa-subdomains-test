@@ -14,10 +14,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -95,6 +97,7 @@ public class ListService {
                 list.get().setType(type);
                 this.listRepository.save(list.get());
                 businessOwnerRepository.save(businessOwner);
+                rabbitTemplate.convertAndSend("sync_monday", "routing_key", businessOwner.getMondayId());
 
 
             } else {
@@ -110,7 +113,6 @@ public class ListService {
             object.put("reason", interviewDTO.getReason());
             rabbitTemplate.convertAndSend("sync_item_update", object.toString());
 
-//            String update = this.monday.createItemUpdate(list.get().getCandidateMondayId(), type, businessOwner.getCompanyName(),interviewDTO.getReason());
 
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "The list has been updated", null, 200));
         } catch (Exception e) {
@@ -147,17 +149,27 @@ public class ListService {
 
 
 
+    @Cacheable("marketplace")
+    public ResponseEntity<?> getMarketplace() {
+    try {
+        List<Candidate> candidates = this.candidateRepository.findAll();
 
-    public ResponseEntity<?> getMarketplace(){
-        try {
-            List<Candidate> candidates = this.candidateRepository.findAll();
-            return ResponseEntity.ok(new ApiResponseDTO<>(true,"The list has been created",candidates,200));
-        }
-        catch (Exception e){
-            log.error(e.getMessage());
-            return ResponseEntity.badRequest().body(new ApiResponseDTO<>(false,"Error",null,400));
-        }
+        Collections.shuffle(candidates);
+
+        candidates.sort((c1, c2) -> {
+            String firstName1 = c1.getFirstName() != null ? c1.getFirstName() : "";
+            String firstName2 = c2.getFirstName() != null ? c2.getFirstName() : "";
+            return firstName1.compareTo(firstName2);
+        });
+
+        Collections.reverse(candidates);
+
+        return ResponseEntity.ok(new ApiResponseDTO<>(true, "The list has been created", candidates, 200));
+    } catch (Exception e) {
+        log.error(e.getMessage());
+        return ResponseEntity.badRequest().body(new ApiResponseDTO<>(false, "Error", null, 400));
     }
+}
 
     @Transactional
     public ResponseEntity<?> getMyListIds(String username){
@@ -205,8 +217,9 @@ public class ListService {
         try {
             BusinessOwner businessOwner = this.businessOwnerRepository.findByEmail(username);
             UserList list = this.listRepository.findById(Long.parseLong(id)).get();
+            Candidate candidate = list.getCandidate();
             String mondayId = businessOwner.getMondayId();
-            String createdId = this.monday.RequestCandidateInfo(mondayId,list.getCandidateMondayId(),businessOwner.getCompanyName());
+            String createdId = this.monday.RequestCandidateInfo(mondayId,list.getCandidateMondayId(),candidate.getName());
             list.setIsRequestedInfo(true);
             listRepository.save(list);
 

@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/camp")
 public class CampController {
@@ -20,9 +22,9 @@ public class CampController {
     private CampService campService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody  RegisterCampDTO registerCampDTO) {
+    public ResponseEntity<?> register(@RequestBody Map<String, String> payload) {
         try {
-            return campService.register(registerCampDTO);
+            return campService.register(payload);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }

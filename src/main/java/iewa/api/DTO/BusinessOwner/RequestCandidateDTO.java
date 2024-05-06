@@ -17,6 +17,7 @@ public class RequestCandidateDTO {
     private String requiredSkillsDetails;
     private String whenToStart;
     private String workHours;
+    private String currency;
 
 
 }

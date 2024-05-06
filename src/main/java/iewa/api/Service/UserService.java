@@ -124,6 +124,10 @@ public class UserService implements UserDetailsService {
                 return ResponseEntity.badRequest().body(new ApiResponseDTO<>(false, "المستخدم غير موجود", null, 400));
             }
 
+            if (!passwordEncoder.matches(loginBusinessOwnerDTO.getPassword(), exists.getPassword())) {
+                return ResponseEntity.badRequest().body(new ApiResponseDTO<>(false, "كلمة المرور غير صحيحه", null, 400));
+            }
+
 
 
             final String jwt = jwtUtil.generateToken(exists.getEmail());

@@ -58,6 +58,7 @@ public class CandidateRequestService {
             columnValues.put("english", requestCandidateDTO.getEnglishLevel());
             columnValues.put("salary_cap", requestCandidateDTO.getMaxSalary());
             columnValues.put("comment", requestCandidateDTO.getAdditionalNotes());
+            columnValues.put("status_1__1", requestCandidateDTO.getCurrency());
 
             String id = this.monday.createCandidateRequest(columnValues, businessOwner.getMondayId());
             CandidateRequest candidateRequest = new CandidateRequest();

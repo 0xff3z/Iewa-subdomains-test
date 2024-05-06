@@ -11,9 +11,9 @@ public class InterviewService {
     @Autowired
     Monday monday;
 
-    @Scheduled(fixedRate = 50000)
+    @Scheduled(fixedRate = 300000)
     public void scheduleFixedRateTask() {
         this.monday.updateInterviewsFromMonday();
-
     }
+
 }
