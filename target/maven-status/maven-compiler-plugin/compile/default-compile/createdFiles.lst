@@ -31,6 +31,7 @@ iewa\api\Controller\BusinessOwner\ListController.class
 iewa\api\Repository\BusinessOwnerRepository.class
 iewa\api\Controller\CampController.class
 iewa\api\Controller\TraineeController.class
+iewa\api\Service\DatabaseBackupService.class
 iewa\api\Controller\BusinessOwner\InvoiceController.class
 iewa\api\Model\Interview$Status.class
 iewa\api\Service\BusinessOwner\ListService.class
