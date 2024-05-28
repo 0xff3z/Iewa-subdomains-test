@@ -61,9 +61,11 @@ iewa\api\Service\BusinessOwner\InvoiceService.class
 iewa\api\Config\JwtUtil.class
 iewa\api\Service\CampService.class
 iewa\api\Model\CandidateRequest$CandidateRequestBuilder.class
+iewa\api\Service\AIQueryService.class
 iewa\api\Model\CandidateRequest.class
 iewa\api\IewaApiApplication.class
 iewa\api\Config\DataLoader.class
 iewa\api\Config\JwtAuthenticationFilter.class
 iewa\api\DTO\BusinessOwner\CreateInterviewDTO.class
+iewa\api\ApiResponses\RegisterResponse.class
 iewa\api\Config\MondayConfig.class
